@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookStore{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #C2420A;
+            --primary-dark: #9B3508;
+            --primary-light: #FFF7ED;
+            --accent: #EA8B2F;
+            --accent-light: #FEF3C7;
+            --dark: #1A1A1A;
+            --text: #374151;
+            --gray: #6B7280;
+            --gray-light: #E5E7EB;
+            --gray-lighter: #F3F4F6;
+            --white: #FFFFFF;
+            --bg: #FFFBF5;
+            --success: #059669;
+            --success-light: #D1FAE5;
+            --danger: #DC2626;
+            --danger-light: #FEE2E2;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 40px -5px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Playfair Display', Georgia, serif;
+            color: var(--dark);
+            line-height: 1.3;
+        }
+
+        /* ===== ANNOUNCEMENT BAR ===== */
+        .announcement-bar {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            text-align: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #92400E;
+            letter-spacing: 0.02em;
+        }
+        .announcement-bar span { margin: 0 0.25rem; }
+
+        /* ===== NAVBAR ===== */
+        .navbar { 
+            background: var(--white);
+            padding: 0.85rem 2rem; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            gap: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .logo { 
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover { color: var(--primary-dark); }
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 440px;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 0.7rem 1rem 0.7rem 2.75rem;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-full);
+            font-size: 0.9rem;
+            background: var(--gray-lighter);
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(194, 66, 10, 0.1);
+        }
+        .search-bar::before {
+            content: "";
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
+            background-size: contain;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 0.15rem; }
+        .nav-links a, .nav-links .category-trigger { 
+            color: var(--text); 
+            text-decoration: none; 
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            white-space: nowrap;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .nav-links a:hover, .nav-links .category-trigger:hover { 
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .category-wrapper {
+            position: relative;
+        }
+        .category-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-xl);
+            padding: 0.5rem 0;
+            min-width: 260px;
+            border: 1px solid var(--gray-light);
+            z-index: 1001;
+            margin-top: 0.35rem;
+        }
+        .category-dropdown.show { display: block; }
+        .category-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: var(--transition);
+            border-radius: 0;
+        }
+        .category-dropdown a:hover {
+            background: var(--gray-lighter);
+        }
+        .category-dropdown a:hover .cat-icon-wrap {
+            transform: scale(1.1);
+        }
+        .cat-icon-wrap {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+        .cat-icon-wrap svg {
+            width: 18px;
+            height: 18px;
+        }
+        .category-dropdown .cat-name {
+            font-weight: 500;
+            flex: 1;
+        }
+        .category-dropdown .cat-arrow {
+            color: var(--gray-light);
+            transition: var(--transition);
+        }
+        .category-dropdown a:hover .cat-arrow {
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+
+        .nav-icons { display: flex; align-items: center; gap: 0.5rem; }
+        .nav-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--gray);
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            transition: var(--transition);
+        }
+        .nav-icon:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .nav-icon svg { width: 22px; height: 22px; }
+        .cart-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent);
+            color: white;
+            font-size: 0.6rem;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-full);
+            background: var(--primary-light);
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: 1px solid rgba(194, 66, 10, 0.15);
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .user-menu:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .user-menu svg { width: 18px; height: 18px; }
+
+        .btn-login {
+            padding: 0.5rem 1.25rem;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .btn-login:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-register {
+            padding: 0.5rem 1.25rem;
+            background: var(--accent);
+            border: 2px solid var(--accent);
+            color: white;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .btn-register:hover {
+            background: #D97706;
+            border-color: #D97706;
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 65px;
+            right: 20px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-xl);
+            padding: 0.5rem 0;
+            min-width: 180px;
+            border: 1px solid var(--gray-light);
+            z-index: 1001;
+        }
+        .user-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.25rem;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .user-dropdown a:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .user-dropdown hr {
+            margin: 0.25rem 0;
+            border: none;
+            border-top: 1px solid var(--gray-light);
+        }
+        .user-dropdown .logout-link { color: var(--danger); }
+        .user-dropdown .logout-link:hover { background: var(--danger-light); color: var(--danger); }
+
+        /* ===== CONTAINER ===== */
+        .container { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* ===== BUTTONS ===== */
+        .btn { 
+            background: var(--accent);
+            color: white; 
+            padding: 0.75rem 1.5rem; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .btn:hover { 
+            background: #D97706;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--success); }
+        .btn-secondary:hover { background: #047857; }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
+        .btn-success {
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+        .btn-success:hover { background: #D97706; }
+
+        /* ===== CARDS ===== */
+        .card { 
+            background: white; 
+            padding: 1.5rem; 
+            border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        /* ===== FORMS ===== */
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; 
+            padding: 0.75rem 1rem; 
+            border: 2px solid var(--gray-light); 
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(194, 66, 10, 0.1);
+        }
+
+        /* ===== ALERTS ===== */
+        .alert { 
+            padding: 1rem 1.25rem; 
+            border-radius: var(--radius); 
+            margin-bottom: 1rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .alert-success { background: var(--success-light); color: #065F46; border: 1px solid #A7F3D0; }
+        .alert-danger { background: var(--danger-light); color: #991B1B; border: 1px solid #FECACA; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: white;
+            color: var(--dark);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-xl);
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 2000;
+            border: 1px solid var(--gray-light);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .toast.show { 
+            display: flex; 
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            animation: slideDown 0.3s ease forwards;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--gray);
+            padding: 0;
+            line-height: 1;
+        }
+        .toast-close:hover { color: var(--dark); }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--dark);
+            color: rgba(255,255,255,0.85);
+            margin-top: 4rem;
+        }
+        .footer-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.2fr;
+            gap: 2.5rem;
+        }
+        .footer-brand .logo {
+            color: white;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+        .footer-brand .logo-icon {
+            background: var(--accent);
+        }
+        .footer-brand p {
+            font-size: 0.9rem;
+            opacity: 0.75;
+            line-height: 1.7;
+            max-width: 300px;
+        }
+        .footer-col h4 {
+            font-family: 'Inter', sans-serif;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .footer-col ul {
+            list-style: none;
+        }
+        .footer-col li {
+            margin-bottom: 0.6rem;
+        }
+        .footer-col a {
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .footer-col a:hover {
+            color: var(--accent);
+        }
+        .footer-social {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .footer-social a {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.7);
+            transition: var(--transition);
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+        .footer-social a:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .footer-bottom {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+        /* ===== GRID ===== */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+            gap: 1.5rem; 
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .footer-content { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 900px) {
+            .search-bar, .nav-links { display: none; }
+            .footer-content { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        }
+        @media (max-width: 600px) {
+            .navbar { padding: 0.75rem 1rem; }
+            .footer-content { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--gray-lighter); }
+        ::-webkit-scrollbar-thumb { background: var(--gray-light); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gray); }
+    </style>
+</head>
+<body>
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        📚 <span>Miễn phí vận chuyển cho đơn hàng trên 500.000đ</span> • <span>Sách mới hàng tuần</span>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <span class="logo-icon">📖</span>
+            BookStore
+        </a>
+        
+        <div class="search-bar">
+            <input type="text" placeholder="Tìm sách, tác giả, thể loại...">
+        </div>
+        
+        <div class="nav-links">
+            <a href="/books/">Sách</a>
+            <div class="category-wrapper">
+                <button class="category-trigger" onclick="toggleCategoryDropdown(event)">
+                    Thể loại sách
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="categoryDropdown" class="category-dropdown"></div>
+            </div>
+            <a href="/books/">Sách mới</a>
+        </div>
+        
+        <div class="nav-icons">
+            <a href="/cart/" class="nav-icon" title="Giỏ hàng">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+            </a>
+            
+            <span id="guestLinks" style="display: flex; gap: 0.5rem; margin-left: 0.5rem;">
+                <a href="/login/" class="btn-login">Đăng nhập</a>
+                <a href="/register/" class="btn-register">Đăng ký</a>
+            </span>
+            
+            <span id="customerLinks" style="display: none; margin-left: 0.5rem;">
+                <button class="user-menu" onclick="toggleUserMenu()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <span id="customerName">User</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="userDropdown" class="user-dropdown">
+                    <a href="/cart/">🛒 Giỏ hàng</a>
+                    <a href="/orders/">📦 Đơn hàng</a>
+                    <hr>
+                    <a href="#" onclick="customerLogout(); return false;" class="logout-link">🚪 Đăng xuất</a>
+                </div>
+            </span>
+            
+            <span id="staffLink" style="margin-left: 0.5rem;">
+                <a href="/staff/login/" class="btn-outline btn-sm">👔 Staff</a>
+            </span>
+        </div>
+    </nav>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span id="toastMessage">Notification</span>
+        <button class="toast-close" onclick="hideToast()">×</button>
+    </div>
+    
+    <!-- Content -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <a href="/" class="logo">
+                    <span class="logo-icon">📖</span>
+                    BookStore
+                </a>
+                <p>Nơi khám phá những cuốn sách hay nhất. Từ tiểu thuyết đến khoa học, kinh tế đến nghệ thuật — tìm cuốn sách tiếp theo của bạn tại đây.</p>
+                <div class="footer-social">
+                    <a href="#" title="Facebook">📘</a>
+                    <a href="#" title="Instagram">📷</a>
+                    <a href="#" title="Twitter">🐦</a>
+                    <a href="#" title="YouTube">🎬</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Liên kết nhanh</h4>
+                <ul>
+                    <li><a href="/books/">Tất cả sách</a></li>
+                    <li><a href="/books/">Sách mới</a></li>
+                    <li><a href="/books/">Bán chạy</a></li>
+
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="#">Hướng dẫn mua hàng</a></li>
+                    <li><a href="#">Chính sách đổi trả</a></li>
+                    <li><a href="#">Giao hàng & Vận chuyển</a></li>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Liên hệ</h4>
+                <ul>
+                    <li><a href="#">📧 support@bookstore.vn</a></li>
+                    <li><a href="#">📞 1900 1234 56</a></li>
+                    <li><a href="#">📍 Hà Nội, Việt Nam</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2024 BookStore Microservices. Built with Django & Docker</span>
+            <span>Made with ❤️ in Vietnam</span>
+        </div>
+    </footer>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var customerId = localStorage.getItem('customer_id');
+        var customerName = localStorage.getItem('customer_name');
+        var staffId = localStorage.getItem('staff_id');
+        
+        if (customerId && customerName) {
+            document.getElementById('guestLinks').style.display = 'none';
+            document.getElementById('staffLink').style.display = 'none';
+            document.getElementById('customerLinks').style.display = 'inline-flex';
+            document.getElementById('customerName').textContent = customerName;
+            updateCartBadge();
+        } else if (staffId && !window.location.pathname.startsWith('/staff/')) {
+            window.location.href = '/staff/dashboard/';
+        }
+    });
+    
+    function toggleUserMenu() {
+        var dropdown = document.getElementById('userDropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    document.addEventListener('click', function(e) {
+        var dropdown = document.getElementById('userDropdown');
+        var userMenu = document.querySelector('.user-menu');
+        if (dropdown && userMenu && !dropdown.contains(e.target) && !userMenu.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+    
+    function customerLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('customer_id');
+        localStorage.removeItem('customer_name');
+        window.location.href = '/';
+    }
+    
+    function updateCartBadge() {
+        var customerId = localStorage.getItem('customer_id');
+        if (!customerId) return;
+        
+        fetch('/api/cart/' + customerId + '/')
+            .then(function(r) { return r.json(); })
+            .then(function(cart) {
+                var count = cart.items ? cart.items.length : 0;
+                var badge = document.getElementById('cartBadge');
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(function() {});
+    }
+    
+    function showToast(message, duration) {
+        duration = duration || 3000;
+        var toast = document.getElementById('toast');
+        document.getElementById('toastMessage').textContent = message;
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, duration);
+    }
+    
+    function hideToast() {
+        document.getElementById('toast').classList.remove('show');
+    }
+
+    // Category dropdown
+    var _categoriesLoaded = false;
+    var CATEGORY_DATA = {
+        'van-hoc-viet-nam': {
+            bg: '#FEF3C7', color: '#92400E',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>'
+        },
+        'van-hoc-nuoc-ngoai': {
+            bg: '#DBEAFE', color: '#1E40AF',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'
+        },
+        'cong-nghe-lap-trinh': {
+            bg: '#D1FAE5', color: '#065F46',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>'
+        },
+        'kinh-te-kinh-doanh': {
+            bg: '#FEE2E2', color: '#991B1B',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>'
+        },
+        'khoa-hoc': {
+            bg: '#EDE9FE', color: '#5B21B6',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5m-4.75-11.396c.25.023.5.05.75.082M5 14.5l-1.394 1.115a.969.969 0 00-.275.988l.69 2.416a.969.969 0 001.052.638l2.476-.372a.969.969 0 00.652-.467L9.75 16.5m9.25-2l1.394 1.115a.969.969 0 01.275.988l-.69 2.416a.969.969 0 01-1.052.638l-2.476-.372a.969.969 0 01-.652-.467L14.25 16.5M9.75 16.5v1.875a.375.375 0 00.375.375h3.75a.375.375 0 00.375-.375V16.5"/></svg>'
+        },
+        'tam-ly-ky-nang-song': {
+            bg: '#FCE7F3', color: '#9D174D',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>'
+        },
+        'thieu-nhi': {
+            bg: '#FFF7ED', color: '#C2410C',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>'
+        },
+        'lich-su-van-hoa': {
+            bg: '#F3E8FF', color: '#6B21A8',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        },
+        'nghe-thuat-thiet-ke': {
+            bg: '#CCFBF1', color: '#0F766E',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>'
+        },
+        'ton-giao-triet-hoc': {
+            bg: '#F0FDF4', color: '#166534',
+            svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/><circle cx="12" cy="10" r="2"/></svg>'
+        }
+    };
+
+    function toggleCategoryDropdown(e) {
+        e.stopPropagation();
+        var dd = document.getElementById('categoryDropdown');
+        var isOpen = dd.classList.contains('show');
+        // Close all other dropdowns
+        document.querySelectorAll('.category-dropdown.show').forEach(function(el) { el.classList.remove('show'); });
+        if (!isOpen) {
+            dd.classList.add('show');
+            if (!_categoriesLoaded) loadCategories();
+        }
+    }
+
+    function loadCategories() {
+        var dd = document.getElementById('categoryDropdown');
+        dd.innerHTML = '<div style="padding:1rem;color:var(--gray);font-size:0.85rem;">Đang tải...</div>';
+        fetch('/api/categories/')
+            .then(function(r) { return r.json(); })
+            .then(function(cats) {
+                _categoriesLoaded = true;
+                if (!cats.length) {
+                    dd.innerHTML = '<div style="padding:1rem;color:var(--gray);font-size:0.85rem;">Chưa có thể loại</div>';
+                    return;
+                }
+                var html = '';
+                var defaultData = {bg:'#F3F4F6',color:'#374151',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>'};
+                cats.forEach(function(c) {
+                    var d = CATEGORY_DATA[c.slug] || defaultData;
+                    html += '<a href="/categories/' + c.slug + '/?id=' + c.category_id + '">'
+                          + '<span class="cat-icon-wrap" style="background:' + d.bg + ';color:' + d.color + '">'
+                          + d.svg + '</span>'
+                          + '<span class="cat-name">' + c.name + '</span>'
+                          + '<svg class="cat-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>'
+                          + '</a>';
+                });
+                dd.innerHTML = html;
+            })
+            .catch(function() {
+                dd.innerHTML = '<div style="padding:1rem;color:var(--danger);font-size:0.85rem;">Lỗi tải thể loại</div>';
+            });
+    }
+
+    // Close category dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.category-wrapper')) {
+            document.querySelectorAll('.category-dropdown.show').forEach(function(el) { el.classList.remove('show'); });
+        }
+    });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

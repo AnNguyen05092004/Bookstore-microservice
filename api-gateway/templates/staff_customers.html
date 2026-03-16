@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Customers - Staff{% endblock %}
+
+{% block content %}
+<div id="content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1>👤 Manage Customers</h1>
+        <a href="/staff/dashboard/" class="btn">← Back to Dashboard</a>
+    </div>
+    
+    <div class="card">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #ddd;">
+                    <th style="text-align: left; padding: 0.5rem;">Name</th>
+                    <th style="text-align: left;">Email</th>
+                    <th style="text-align: left;">Phone</th>
+                    <th style="text-align: center;">Tier</th>
+                    <th style="text-align: right;">Points</th>
+                    <th style="text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody id="customersTable">
+                <tr><td colspan="6" style="text-align: center; padding: 1rem;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="loginRequired" style="display: none; text-align: center; padding: 3rem;">
+    <h2>🔒 Login Required</h2>
+    <a href="/staff/login/" class="btn">Go to Staff Login</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const staffToken = localStorage.getItem('staff_token');
+if (!staffToken) {
+    document.getElementById('loginRequired').style.display = 'block';
+} else {
+    document.getElementById('content').style.display = 'block';
+    loadCustomers();
+}
+
+function loadCustomers() {
+    fetch('/api/customers/')
+        .then(r => r.json())
+        .then(customers => {
+            const tbody = document.getElementById('customersTable');
+            if (!Array.isArray(customers) || customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No customers found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = customers.map(c => `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 0.5rem;">${c.full_name || c.first_name + ' ' + c.last_name}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phone_number || '-'}</td>
+                    <td style="text-align: center;"><span style="background:#ffc107;padding:2px 8px;border-radius:4px;font-size:0.8rem;">${c.tier}</span></td>
+                    <td style="text-align: right;">${c.loyalty_points}</td>
+                    <td style="text-align: center;">${c.is_active ? '✅ Active' : '❌ Inactive'}</td>
+                </tr>
+            `).join('');
+        })
+        .catch(() => {
+            document.getElementById('customersTable').innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Error loading customers</td></tr>';
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # API Gateway - Port 8000
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - CUSTOMER_SERVICE_URL=http://customer-service:8000
+      - STAFF_SERVICE_URL=http://staff-service:8000
+      - CATALOG_SERVICE_URL=http://catalog-service:8000
+      - BOOK_SERVICE_URL=http://book-service:8000
+      - CART_SERVICE_URL=http://cart-service:8000
+      - ORDER_SERVICE_URL=http://order-service:8000
+      - PAY_SERVICE_URL=http://pay-service:8000
+      - SHIP_SERVICE_URL=http://ship-service:8000
+      - COMMENT_RATE_SERVICE_URL=http://comment-rate-service:8000
+      - RECOMMENDER_SERVICE_URL=http://recommender-ai-service:8000
+    depends_on:
+      - customer-service
+      - book-service
+      - cart-service
+      - order-service
+    networks:
+      - bookstore-network
+
+  # Customer Service - Port 8001
+  customer-service:
+    build: ./customer-service
+    ports:
+      - "8001:8000"
+    environment:
+      - DEBUG=True
+      - CART_SERVICE_URL=http://cart-service:8000
+    networks:
+      - bookstore-network
+
+  # Staff Service - Port 8002
+  staff-service:
+    build: ./staff-service
+    ports:
+      - "8002:8000"
+    environment:
+      - DEBUG=True
+    networks:
+      - bookstore-network
+
+  # Catalog Service - Port 8004
+  catalog-service:
+    build: ./catalog-service
+    ports:
+      - "8004:8000"
+    environment:
+      - DEBUG=True
+    networks:
+      - bookstore-network
+
+  # Book Service - Port 8005
+  book-service:
+    build: ./book-service
+    ports:
+      - "8005:8000"
+    environment:
+      - DEBUG=True
+      - CATALOG_SERVICE_URL=http://catalog-service:8000
+    networks:
+      - bookstore-network
+
+  # Cart Service - Port 8006
+  cart-service:
+    build: ./cart-service
+    ports:
+      - "8006:8000"
+    environment:
+      - DEBUG=True
+      - BOOK_SERVICE_URL=http://book-service:8000
+    networks:
+      - bookstore-network
+
+  # Order Service - Port 8007
+  order-service:
+    build: ./order-service
+    ports:
+      - "8007:8000"
+    environment:
+      - DEBUG=True
+      - CART_SERVICE_URL=http://cart-service:8000
+      - BOOK_SERVICE_URL=http://book-service:8000
+      - PAY_SERVICE_URL=http://pay-service:8000
+      - SHIP_SERVICE_URL=http://ship-service:8000
+    depends_on:
+      - cart-service
+      - book-service
+      - pay-service
+      - ship-service
+    networks:
+      - bookstore-network
+
+  # Pay Service - Port 8008
+  pay-service:
+    build: ./pay-service
+    ports:
+      - "8008:8000"
+    environment:
+      - DEBUG=True
+    networks:
+      - bookstore-network
+
+  # Ship Service - Port 8009
+  ship-service:
+    build: ./ship-service
+    ports:
+      - "8009:8000"
+    environment:
+      - DEBUG=True
+    networks:
+      - bookstore-network
+
+  # Comment/Rate Service - Port 8010
+  comment-rate-service:
+    build: ./comment-rate-service
+    ports:
+      - "8010:8000"
+    environment:
+      - DEBUG=True
+      - BOOK_SERVICE_URL=http://book-service:8000
+      - CUSTOMER_SERVICE_URL=http://customer-service:8000
+    depends_on:
+      - book-service
+      - customer-service
+    networks:
+      - bookstore-network
+
+  # Recommender AI Service - Port 8011
+  recommender-ai-service:
+    build: ./recommender-ai-service
+    ports:
+      - "8011:8000"
+    environment:
+      - DEBUG=True
+      - BOOK_SERVICE_URL=http://book-service:8000
+      - ORDER_SERVICE_URL=http://order-service:8000
+    depends_on:
+      - book-service
+    networks:
+      - bookstore-network
+
+networks:
+  bookstore-network:
+    driver: bridge

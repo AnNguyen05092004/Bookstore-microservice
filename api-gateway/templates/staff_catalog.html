@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Catalog - Staff{% endblock %}
+
+{% block content %}
+<div id="content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1>📂 Manage Catalog</h1>
+        <a href="/staff/dashboard/" class="btn">← Back to Dashboard</a>
+    </div>
+    
+    <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+        <!-- Categories -->
+        <div class="card">
+            <h3>📁 Categories</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <th style="text-align: left; padding: 0.5rem;">Name</th>
+                        <th style="text-align: left;">Slug</th>
+                    </tr>
+                </thead>
+                <tbody id="categoriesTable">
+                    <tr><td colspan="2" style="text-align: center; padding: 0.5rem;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Authors -->
+        <div class="card">
+            <h3>✍️ Authors</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <th style="text-align: left; padding: 0.5rem;">Name</th>
+                        <th style="text-align: left;">Nationality</th>
+                    </tr>
+                </thead>
+                <tbody id="authorsTable">
+                    <tr><td colspan="2" style="text-align: center; padding: 0.5rem;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Publishers -->
+        <div class="card">
+            <h3>🏢 Publishers</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <th style="text-align: left; padding: 0.5rem;">Name</th>
+                        <th style="text-align: left;">Website</th>
+                    </tr>
+                </thead>
+                <tbody id="publishersTable">
+                    <tr><td colspan="2" style="text-align: center; padding: 0.5rem;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Tags -->
+        <div class="card">
+            <h3>🏷️ Tags</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <th style="text-align: left; padding: 0.5rem;">Name</th>
+                        <th style="text-align: left;">Slug</th>
+                    </tr>
+                </thead>
+                <tbody id="tagsTable">
+                    <tr><td colspan="2" style="text-align: center; padding: 0.5rem;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="loginRequired" style="display: none; text-align: center; padding: 3rem;">
+    <h2>🔒 Login Required</h2>
+    <a href="/staff/login/" class="btn">Go to Staff Login</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const staffToken = localStorage.getItem('staff_token');
+if (!staffToken) {
+    document.getElementById('loginRequired').style.display = 'block';
+} else {
+    document.getElementById('content').style.display = 'block';
+    loadCatalogData();
+}
+
+function loadCatalogData() {
+    // Categories
+    fetch('/api/categories/')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('categoriesTable');
+            tbody.innerHTML = Array.isArray(data) && data.length > 0 
+                ? data.map(c => `<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;">${c.name}</td><td>${c.slug}</td></tr>`).join('')
+                : '<tr><td colspan="2">No categories</td></tr>';
+        });
+    
+    // Authors
+    fetch('/api/authors/')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('authorsTable');
+            tbody.innerHTML = Array.isArray(data) && data.length > 0 
+                ? data.map(a => `<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;">${a.name}</td><td>${a.nationality || '-'}</td></tr>`).join('')
+                : '<tr><td colspan="2">No authors</td></tr>';
+        });
+    
+    // Publishers
+    fetch('/api/publishers/')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('publishersTable');
+            tbody.innerHTML = Array.isArray(data) && data.length > 0 
+                ? data.map(p => `<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;">${p.name}</td><td>${p.website ? '<a href="'+p.website+'" target="_blank">Link</a>' : '-'}</td></tr>`).join('')
+                : '<tr><td colspan="2">No publishers</td></tr>';
+        });
+    
+    // Tags
+    fetch('/api/tags/')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('tagsTable');
+            tbody.innerHTML = Array.isArray(data) && data.length > 0 
+                ? data.map(t => `<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;">${t.name}</td><td>${t.slug}</td></tr>`).join('')
+                : '<tr><td colspan="2">No tags</td></tr>';
+        });
+}
+</script>
+{% endblock %}

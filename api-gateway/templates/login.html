@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Đăng nhập - BookStore{% endblock %}
+
+{% block content %}
+<style>
+    .auth-container {
+        max-width: 440px;
+        margin: 2rem auto;
+    }
+    .auth-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: 2.5rem;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .auth-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 2.5rem;
+    }
+    .auth-header h1 {
+        margin: 0;
+        font-size: 1.6rem;
+    }
+    .auth-header p {
+        color: var(--gray);
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .auth-card .form-group input {
+        padding: 0.85rem 1rem;
+    }
+    .auth-card .btn {
+        width: 100%;
+        padding: 0.9rem;
+        font-size: 1rem;
+        border-radius: var(--radius-full);
+    }
+    .auth-divider {
+        text-align: center;
+        margin-top: 1.75rem;
+        padding-top: 1.75rem;
+        border-top: 1px solid var(--gray-light);
+    }
+    .auth-divider p {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+    .auth-divider a {
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .auth-divider a:hover { text-decoration: underline; }
+
+    .test-account {
+        background: var(--accent-light);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        margin-top: 1rem;
+        border: 1px solid rgba(234, 139, 47, 0.2);
+    }
+    .test-account h4 {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        color: #92400E;
+    }
+    .test-account p {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin: 0;
+        line-height: 1.6;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">👤</div>
+            <h1>Chào mừng trở lại!</h1>
+            <p>Đăng nhập vào tài khoản của bạn</p>
+        </div>
+        
+        <div id="errorAlert" class="alert alert-danger" style="display: none;"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn">
+                Đăng nhập
+            </button>
+        </form>
+        
+        <div class="auth-divider">
+            <p>
+                Chưa có tài khoản? <a href="/register/">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="test-account">
+        <h4>🧪 Tài khoản test:</h4>
+        <p>
+            <strong>Email:</strong> demo@bookstore.com<br>
+            <strong>Mật khẩu:</strong> demo123
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+if (localStorage.getItem('customer_id')) {
+    window.location.href = '/';
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Đang đăng nhập...';
+    btn.disabled = true;
+    
+    fetch('/api/auth/login/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, password})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('customer_id', data.customer.customer_id);
+            localStorage.setItem('customer_name', data.customer.full_name || data.customer.first_name || data.customer.username);
+            window.location.href = '/';
+        } else {
+            document.getElementById('errorAlert').textContent = data.error || 'Email hoặc mật khẩu không đúng';
+            document.getElementById('errorAlert').style.display = 'block';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    })
+    .catch(err => {
+        document.getElementById('errorAlert').textContent = 'Lỗi kết nối server';
+        document.getElementById('errorAlert').style.display = 'block';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+});
+</script>
+{% endblock %}

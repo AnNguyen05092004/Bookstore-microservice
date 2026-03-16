@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}Thanh toán - BookStore{% endblock %}
+
+{% block content %}
+<style>
+    .checkout-container { display: grid; grid-template-columns: 1fr 400px; gap: 2rem; }
+    @media (max-width: 900px) { .checkout-container { grid-template-columns: 1fr; } }
+    
+    .checkout-section {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.75rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    .checkout-section h2 {
+        font-size: 1.2rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 2px solid var(--gray-lighter);
+    }
+    
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    
+    /* Payment & Shipping Options */
+    .option-group { display: flex; flex-direction: column; gap: 0.75rem; }
+    .option-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--gray-light);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .option-item:hover { border-color: var(--accent); background: var(--primary-light); }
+    .option-item.selected { border-color: var(--accent); background: var(--primary-light); }
+    .option-item input[type="radio"] { margin-right: 1rem; accent-color: var(--primary); width: 18px; height: 18px; }
+    .option-info { flex: 1; }
+    .option-info .option-title { font-weight: 600; color: var(--dark); }
+    .option-info .option-desc { font-size: 0.85rem; color: var(--gray); margin-top: 0.2rem; }
+    .option-price { font-weight: 600; color: var(--primary); }
+    
+    /* Order Summary */
+    .order-summary { position: sticky; top: 100px; }
+    .summary-item { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter); }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item.total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dark);
+        border-top: 2px solid var(--gray-light);
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+    }
+    .summary-item .label { color: var(--gray); }
+    .summary-item .value { color: var(--dark); font-weight: 500; }
+    .summary-item.total .value { color: var(--primary); }
+    
+    .cart-items-summary { max-height: 200px; overflow-y: auto; margin-bottom: 1rem; }
+    .cart-item-row { display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter); }
+    .cart-item-row img { width: 50px; height: 65px; object-fit: cover; border-radius: 6px; }
+    .cart-item-info { flex: 1; }
+    .cart-item-title { font-size: 0.9rem; color: var(--dark); font-weight: 500; }
+    .cart-item-qty { font-size: 0.8rem; color: var(--gray); }
+    .cart-item-price { font-weight: 600; color: var(--primary); white-space: nowrap; }
+    
+    .btn-checkout {
+        width: 100%;
+        padding: 1rem;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: var(--radius-full);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 1rem;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-checkout:hover { background: #D97706; transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .btn-checkout:disabled { background: var(--gray-light); cursor: not-allowed; transform: none; box-shadow: none; }
+    
+    .secure-note {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 1rem;
+        color: var(--gray);
+        font-size: 0.85rem;
+    }
+    .secure-note svg { color: var(--success); }
+</style>
+
+<!-- Breadcrumb -->
+<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-size: 0.9rem;">
+    <a href="/" style="color: var(--gray); text-decoration: none;">Trang chủ</a>
+    <span style="color: var(--gray-light);">/</span>
+    <a href="/cart/" style="color: var(--gray); text-decoration: none;">Giỏ hàng</a>
+    <span style="color: var(--gray-light);">/</span>
+    <span style="color: var(--text); font-weight: 500;">Thanh toán</span>
+</div>
+
+<h1 style="margin-bottom: 1.5rem;">Thanh toán</h1>
+
+<div class="checkout-container">
+    <div class="checkout-main">
+        <!-- Shipping Address -->
+        <div class="checkout-section">
+            <h2>📍 Địa chỉ giao hàng</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Họ và tên</label>
+                    <input type="text" id="fullName" placeholder="Nguyễn Văn A" required>
+                </div>
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <input type="tel" id="phone" placeholder="0912 345 678" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ</label>
+                <input type="text" id="address" placeholder="Số nhà, tên đường" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Quận/Huyện</label>
+                    <input type="text" id="district" placeholder="Quận 1" required>
+                </div>
+                <div class="form-group">
+                    <label>Tỉnh/Thành phố</label>
+                    <input type="text" id="city" placeholder="TP. Hồ Chí Minh" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Ghi chú (tùy chọn)</label>
+                <textarea id="notes" rows="2" placeholder="Ghi chú cho đơn hàng..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Shipping Method -->
+        <div class="checkout-section">
+            <h2>🚚 Phương thức vận chuyển</h2>
+            <div class="option-group">
+                <label class="option-item selected">
+                    <input type="radio" name="shipping" value="standard" checked>
+                    <div class="option-info">
+                        <div class="option-title">Giao hàng tiêu chuẩn</div>
+                        <div class="option-desc">Nhận hàng trong 3-5 ngày</div>
+                    </div>
+                    <span class="option-price">25.000đ</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="shipping" value="express">
+                    <div class="option-info">
+                        <div class="option-title">Giao hàng nhanh</div>
+                        <div class="option-desc">Nhận hàng trong 1-2 ngày</div>
+                    </div>
+                    <span class="option-price">45.000đ</span>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="shipping" value="same_day">
+                    <div class="option-info">
+                        <div class="option-title">Giao hàng trong ngày</div>
+                        <div class="option-desc">Nhận hàng trong hôm nay (nội thành)</div>
+                    </div>
+                    <span class="option-price">65.000đ</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Payment Method -->
+        <div class="checkout-section">
+            <h2>💳 Phương thức thanh toán</h2>
+            <div class="option-group">
+                <label class="option-item selected">
+                    <input type="radio" name="payment" value="cod" checked>
+                    <div class="option-info">
+                        <div class="option-title">Thanh toán khi nhận hàng (COD)</div>
+                        <div class="option-desc">Thanh toán bằng tiền mặt khi nhận hàng</div>
+                    </div>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="payment" value="bank_transfer">
+                    <div class="option-info">
+                        <div class="option-title">Chuyển khoản ngân hàng</div>
+                        <div class="option-desc">Chuyển khoản qua tài khoản ngân hàng</div>
+                    </div>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="payment" value="credit_card">
+                    <div class="option-info">
+                        <div class="option-title">Thẻ tín dụng / Ghi nợ</div>
+                        <div class="option-desc">Visa, MasterCard, JCB</div>
+                    </div>
+                </label>
+                <label class="option-item">
+                    <input type="radio" name="payment" value="momo">
+                    <div class="option-info">
+                        <div class="option-title">Ví MoMo</div>
+                        <div class="option-desc">Thanh toán qua ví điện tử MoMo</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Summary Sidebar -->
+    <div class="order-summary">
+        <div class="checkout-section">
+            <h2>🛒 Đơn hàng của bạn</h2>
+            <div class="cart-items-summary" id="cartItemsSummary">
+                <p style="text-align: center; color: var(--gray);">Đang tải...</p>
+            </div>
+            
+            <div class="summary-item">
+                <span class="label">Tạm tính</span>
+                <span class="value" id="subtotal">0đ</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Phí vận chuyển</span>
+                <span class="value" id="shippingFee">25.000đ</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Giảm giá</span>
+                <span class="value" id="discount">0đ</span>
+            </div>
+            <div class="summary-item total">
+                <span class="label">Tổng cộng</span>
+                <span class="value" id="totalAmount">0đ</span>
+            </div>
+            
+            <button class="btn-checkout" id="btnPlaceOrder" onclick="placeOrder()">
+                Đặt hàng
+            </button>
+            
+            <div class="secure-note">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                Thanh toán an toàn & bảo mật
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const customerId = localStorage.getItem('customer_id');
+let cartData = null;
+const shippingPrices = { standard: 25000, express: 45000, same_day: 65000 };
+
+if (!customerId) {
+    showToast('Vui lòng đăng nhập để thanh toán');
+    window.location.href = '/login/';
+}
+
+document.addEventListener('DOMContentLoaded', loadCart);
+
+function loadCart() {
+    fetch(`/api/cart/${customerId}/`)
+        .then(r => r.json())
+        .then(data => {
+            cartData = data;
+            renderCartSummary(data);
+            updateTotals();
+        })
+        .catch(err => {
+            showToast('Lỗi tải giỏ hàng');
+        });
+}
+
+function renderCartSummary(cart) {
+    const container = document.getElementById('cartItemsSummary');
+    if (!cart.items || cart.items.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--gray);">Giỏ hàng trống</p>';
+        document.getElementById('btnPlaceOrder').disabled = true;
+        return;
+    }
+    
+    container.innerHTML = cart.items.map(item => `
+        <div class="cart-item-row">
+            <img src="https://picsum.photos/seed/${item.book_id}/100/130" alt="${item.book_title}">
+            <div class="cart-item-info">
+                <div class="cart-item-title">${item.book_title}</div>
+                <div class="cart-item-qty">SL: ${item.quantity}</div>
+            </div>
+            <span class="cart-item-price">${formatPrice(item.subtotal)}</span>
+        </div>
+    `).join('');
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+}
+
+function updateTotals() {
+    if (!cartData) return;
+    
+    const subtotal = parseFloat(cartData.total) || 0;
+    const shipping = document.querySelector('input[name="shipping"]:checked').value;
+    const shippingFee = shippingPrices[shipping];
+    const total = subtotal + shippingFee;
+    
+    document.getElementById('subtotal').textContent = formatPrice(subtotal);
+    document.getElementById('shippingFee').textContent = formatPrice(shippingFee);
+    document.getElementById('totalAmount').textContent = formatPrice(total);
+}
+
+document.querySelectorAll('input[name="shipping"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
+        this.closest('.option-item').classList.add('selected');
+        updateTotals();
+    });
+});
+
+document.querySelectorAll('input[name="payment"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        this.closest('.option-group').querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
+        this.closest('.option-item').classList.add('selected');
+    });
+});
+
+function placeOrder() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const district = document.getElementById('district').value.trim();
+    const city = document.getElementById('city').value.trim();
+    
+    if (!fullName || !phone || !address || !district || !city) {
+        showToast('Vui lòng điền đầy đủ thông tin giao hàng');
+        return;
+    }
+    
+    const shippingMethod = document.querySelector('input[name="shipping"]:checked').value;
+    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+    const notes = document.getElementById('notes').value.trim();
+    const shippingAddress = `${fullName}, ${phone}, ${address}, ${district}, ${city}`;
+    
+    document.getElementById('btnPlaceOrder').disabled = true;
+    document.getElementById('btnPlaceOrder').textContent = 'Đang xử lý...';
+    
+    fetch('/api/orders/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            customer_id: customerId,
+            shipping_address: shippingAddress,
+            billing_address: shippingAddress,
+            shipping_method: shippingMethod,
+            payment_method: paymentMethod,
+            notes: notes
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            showToast(data.error);
+            document.getElementById('btnPlaceOrder').disabled = false;
+            document.getElementById('btnPlaceOrder').textContent = 'Đặt hàng';
+        } else {
+            showToast('Đặt hàng thành công!');
+            setTimeout(() => { window.location.href = '/?order_success=1'; }, 1500);
+        }
+    })
+    .catch(err => {
+        showToast('Lỗi khi đặt hàng');
+        document.getElementById('btnPlaceOrder').disabled = false;
+        document.getElementById('btnPlaceOrder').textContent = 'Đặt hàng';
+    });
+}
+
+const customerName = localStorage.getItem('customer_name');
+if (customerName) {
+    document.getElementById('fullName').value = customerName;
+}
+</script>
+{% endblock %}

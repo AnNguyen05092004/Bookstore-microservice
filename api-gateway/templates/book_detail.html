@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title|default:'Book Details' }} - BookStore{% endblock %}
+
+{% block content %}
+<style>
+    /* Breadcrumb */
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        font-size: 0.9rem;
+    }
+    .breadcrumb a {
+        color: var(--gray);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb .sep { color: var(--gray-light); }
+    .breadcrumb .current { color: var(--text); font-weight: 500; }
+
+    .book-detail-container { display: flex; gap: 3rem; flex-wrap: wrap; margin-bottom: 3rem; }
+    .book-image { flex: 1; min-width: 280px; }
+    .book-image img {
+        width: 100%;
+        max-width: 380px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-xl);
+        transition: transform 0.3s ease;
+    }
+    .book-image img:hover { transform: scale(1.02); }
+
+    .book-info { flex: 2; min-width: 300px; }
+    .book-info h1 {
+        font-size: 2rem;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        line-height: 1.25;
+    }
+    .book-author {
+        color: var(--gray);
+        font-size: 1.05rem;
+        margin-bottom: 1.25rem;
+    }
+    .book-author span { color: var(--primary); font-weight: 500; }
+
+    .book-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1rem 0;
+        padding: 0.75rem 1rem;
+        background: var(--primary-light);
+        border-radius: var(--radius);
+        display: inline-flex;
+    }
+    .stars { color: #F59E0B; font-size: 1.3rem; letter-spacing: 2px; }
+    .rating-score { font-weight: 700; color: var(--dark); font-size: 1.1rem; }
+    .rating-count { color: var(--gray); font-size: 0.9rem; }
+
+    .book-price {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: var(--primary);
+        font-weight: 700;
+        margin: 1.25rem 0;
+    }
+
+    .book-description {
+        color: var(--text);
+        line-height: 1.8;
+        margin: 1.25rem 0;
+        font-size: 0.95rem;
+    }
+
+    .book-meta {
+        background: var(--gray-lighter);
+        padding: 1.25rem 1.5rem;
+        border-radius: var(--radius);
+        margin: 1.5rem 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    .book-meta p {
+        margin: 0;
+        color: var(--text);
+        font-size: 0.9rem;
+    }
+    .book-meta strong {
+        color: var(--dark);
+    }
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.85rem;
+        border-radius: var(--radius-full);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .in-stock { background: var(--success-light); color: #065F46; }
+    .out-stock { background: var(--danger-light); color: #991B1B; }
+
+    .add-to-cart-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    .btn-add-cart {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: var(--radius-full);
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: var(--transition);
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-add-cart:hover {
+        background: #D97706;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Reviews Section */
+    .reviews-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--gray-light);
+    }
+    .reviews-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .reviews-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .review-card {
+        background: white;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: var(--transition);
+    }
+    .review-card:hover {
+        box-shadow: var(--shadow);
+    }
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .reviewer-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 1rem;
+    }
+    .reviewer-name { font-weight: 600; color: var(--dark); }
+    .review-stars { color: #F59E0B; letter-spacing: 1px; }
+    .review-content { color: var(--text); line-height: 1.7; font-size: 0.95rem; }
+    .review-date { color: var(--gray); font-size: 0.85rem; margin-top: 0.75rem; }
+
+    /* Review Form */
+    .review-form-container {
+        background: linear-gradient(135deg, var(--primary-light) 0%, white 100%);
+        border: 2px solid var(--accent);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .review-form-container h3 {
+        font-size: 1.2rem;
+        color: var(--dark);
+        margin-bottom: 1.25rem;
+    }
+    .rating-input { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .rating-input input[type="radio"] { display: none; }
+    .rating-input label { font-size: 2rem; color: #D1D5DB; cursor: pointer; transition: color 0.2s; }
+    .rating-input label:hover, .rating-input label:hover ~ label, .rating-input input:checked ~ label { color: #F59E0B; }
+    .rating-input { flex-direction: row-reverse; justify-content: flex-end; }
+    .rating-input input:checked + label, .rating-input input:checked + label ~ label { color: #F59E0B; }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    .btn-submit-review {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        transition: var(--transition);
+    }
+    .btn-submit-review:hover { background: #D97706; }
+    .login-prompt { text-align: center; padding: 1rem; color: var(--gray); }
+    .login-prompt a { color: var(--primary); font-weight: 600; }
+
+    @media (max-width: 768px) {
+        .book-detail-container { gap: 2rem; }
+        .book-info h1 { font-size: 1.5rem; }
+        .book-price { font-size: 2rem; }
+        .book-meta { grid-template-columns: 1fr; }
+    }
+</style>
+
+{% if book %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="/">Trang chủ</a>
+    <span class="sep">/</span>
+    <a href="/books/">Sách</a>
+    <span class="sep">/</span>
+    <span class="current">{{ book.title }}</span>
+</div>
+
+<div class="book-detail-container">
+    <div class="book-image">
+        <img src="{% if book.cover_image_url %}{{ book.cover_image_url }}{% else %}https://picsum.photos/seed/{{ book.book_id }}/400/500{% endif %}" alt="{{ book.title }}">
+    </div>
+    <div class="book-info">
+        <h1>{{ book.title }}</h1>
+        <p class="book-author">Tác giả: <span>{{ book.author_name|default:'Chưa rõ' }}</span></p>
+        
+        <div class="book-rating">
+            <span class="stars" data-rating="{{ book.average_rating|default:0 }}"></span>
+            <span class="rating-score">{{ book.average_rating|default:"0" }}</span>
+            <span class="rating-count">({{ book.total_reviews|default:0 }} đánh giá)</span>
+        </div>
+        
+        <p class="book-price">{{ book.price|floatformat:0 }}đ</p>
+        
+        <p class="book-description">{{ book.description|default:'Chưa có mô tả.' }}</p>
+        
+        <div class="book-meta">
+            <p><strong>ISBN:</strong> {{ book.isbn|default:'N/A' }}</p>
+            <p><strong>Nhà xuất bản:</strong> {{ book.publisher_name|default:'N/A' }}</p>
+            <p><strong>Số trang:</strong> {{ book.page_count|default:'N/A' }}</p>
+            <p><strong>Ngôn ngữ:</strong> {{ book.language|default:'Tiếng Việt' }}</p>
+            <p style="grid-column: 1/-1;"><strong>Tình trạng:</strong> 
+                {% if book.stock_quantity > 0 %}
+                    <span class="stock-badge in-stock">✓ Còn hàng ({{ book.stock_quantity }})</span>
+                {% else %}
+                    <span class="stock-badge out-stock">✗ Hết hàng</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="add-to-cart-group">
+            <button class="btn-add-cart" onclick="addToCart('{{ book.book_id }}')">
+                🛒 Thêm vào giỏ hàng
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Reviews Section -->
+<div class="reviews-section">
+    <div class="reviews-header">
+        <h2>Đánh giá sản phẩm</h2>
+    </div>
+    
+    <!-- Review Form -->
+    <div class="review-form-container" id="reviewFormContainer">
+        <h3>Viết đánh giá của bạn</h3>
+        <div id="loginPrompt" class="login-prompt" style="display: none;">
+            <p>Vui lòng <a href="/login/">đăng nhập</a> để đánh giá sản phẩm</p>
+        </div>
+        <form id="reviewForm" style="display: none;">
+            <div class="form-group">
+                <label>Đánh giá sao:</label>
+                <div class="rating-input">
+                    <input type="radio" name="rating" value="5" id="star5"><label for="star5">★</label>
+                    <input type="radio" name="rating" value="4" id="star4"><label for="star4">★</label>
+                    <input type="radio" name="rating" value="3" id="star3"><label for="star3">★</label>
+                    <input type="radio" name="rating" value="2" id="star2"><label for="star2">★</label>
+                    <input type="radio" name="rating" value="1" id="star1"><label for="star1">★</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="reviewTitle">Tiêu đề:</label>
+                <input type="text" id="reviewTitle" placeholder="Tiêu đề đánh giá..." style="width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--gray-light); border-radius: var(--radius);">
+            </div>
+            <div class="form-group">
+                <label for="reviewComment">Nội dung đánh giá:</label>
+                <textarea id="reviewComment" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+            </div>
+            <button type="submit" class="btn-submit-review">Gửi đánh giá</button>
+        </form>
+    </div>
+    
+    <!-- Reviews List -->
+    <div id="reviewsList">
+        {% for review in reviews %}
+        <div class="review-card">
+            <div class="review-header">
+                <div class="reviewer-info">
+                    <div class="reviewer-avatar">{{ review.customer_initial|default:'A' }}</div>
+                    <span class="reviewer-name">{{ review.customer_name|default:'Ẩn danh' }}</span>
+                </div>
+                <span class="review-stars stars" data-rating="{{ review.rating|default:0 }}"></span>
+            </div>
+            {% if review.title %}<strong>{{ review.title }}</strong>{% endif %}
+            <p class="review-content">{{ review.content }}</p>
+            <p class="review-date">{{ review.created_at }}</p>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: var(--gray); padding: 2rem;">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá!</p>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<p style="text-align: center; padding: 3rem; color: var(--gray);">Không tìm thấy sách.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const bookId = '{{ book.book_id }}';
+const customerId = localStorage.getItem('customer_id');
+
+// Render star ratings from data-rating attribute
+function renderStars(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalf = rating - fullStars >= 0.5;
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) stars += '★';
+        else if (i === fullStars + 1 && hasHalf) stars += '★';
+        else stars += '☆';
+    }
+    return stars;
+}
+
+// Show/hide review form based on login status
+document.addEventListener('DOMContentLoaded', function() {
+    // Render all star ratings
+    document.querySelectorAll('.stars[data-rating]').forEach(function(el) {
+        const rating = parseFloat(el.dataset.rating) || 0;
+        el.textContent = renderStars(rating);
+    });
+    
+    if (customerId) {
+        document.getElementById('reviewForm').style.display = 'block';
+        document.getElementById('loginPrompt').style.display = 'none';
+    } else {
+        document.getElementById('reviewForm').style.display = 'none';
+        document.getElementById('loginPrompt').style.display = 'block';
+    }
+});
+
+function addToCart(bookId) {
+    if (!customerId) {
+        showToast('Vui lòng đăng nhập trước');
+        window.location.href = '/login/';
+        return;
+    }
+    
+    fetch(`/api/cart/${customerId}/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({book_id: bookId, quantity: 1})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            showToast(data.error);
+        } else {
+            showToast('Đã thêm vào giỏ hàng!');
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+        }
+    })
+    .catch(err => showToast('Lỗi khi thêm vào giỏ'));
+}
+
+// Submit review
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const rating = document.querySelector('input[name="rating"]:checked');
+    const title = document.getElementById('reviewTitle').value;
+    const content = document.getElementById('reviewComment').value;
+    
+    if (!rating) {
+        showToast('Vui lòng chọn số sao đánh giá');
+        return;
+    }
+    
+    if (!content.trim()) {
+        showToast('Vui lòng nhập nội dung đánh giá');
+        return;
+    }
+    
+    // Submit review with score (rating created server-side)
+    fetch('/api/reviews/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            book_id: bookId,
+            customer_id: customerId,
+            title: title,
+            content: content,
+            score: parseInt(rating.value)
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            showToast(data.error);
+        } else {
+            showToast('Đã gửi đánh giá thành công!');
+            const ratingVal = parseInt(rating.value);
+            const customerName = localStorage.getItem('customer_name') || 'Bạn';
+            const initial = customerName.charAt(0).toUpperCase();
+            const reviewsList = document.getElementById('reviewsList');
+            const newReview = document.createElement('div');
+            newReview.className = 'review-card';
+            newReview.innerHTML = `
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">${initial}</div>
+                        <span class="reviewer-name">${customerName}</span>
+                    </div>
+                    <span class="review-stars">${'★'.repeat(ratingVal)}${'☆'.repeat(5 - ratingVal)}</span>
+                </div>
+                ${title ? '<strong>' + title + '</strong>' : ''}
+                <p class="review-content">${content}</p>
+                <p class="review-date">Vừa xong</p>
+            `;
+            reviewsList.insertBefore(newReview, reviewsList.firstChild);
+            const emptyMsg = reviewsList.querySelector('p[style*="text-align: center"]');
+            if (emptyMsg) emptyMsg.remove();
+            document.getElementById('reviewForm').reset();
+        }
+    })
+    .catch(err => showToast('Lỗi khi gửi đánh giá'));
+});
+</script>
+{% endblock %}

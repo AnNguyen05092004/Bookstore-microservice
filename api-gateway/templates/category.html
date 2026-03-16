@@ -1,0 +1,477 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - BookStore{% endblock %}
+
+{% block content %}
+<style>
+/* ===== CATEGORY PAGE ===== */
+.category-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 2rem 0 1.5rem;
+}
+.category-header .breadcrumb {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-bottom: 1rem;
+}
+.category-header .breadcrumb a {
+    color: var(--primary);
+    text-decoration: none;
+}
+.category-header .breadcrumb a:hover { text-decoration: underline; }
+.category-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+.category-header p {
+    color: var(--gray);
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.category-header .stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+.category-header .stat {
+    font-size: 0.9rem;
+    color: var(--text);
+}
+.category-header .stat strong {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+/* ===== AUTHORS SECTION ===== */
+.authors-section {
+    margin-bottom: 2.5rem;
+}
+.authors-section h2 {
+    font-size: 1.35rem;
+    margin-bottom: 1.25rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.authors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.author-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+    cursor: default;
+}
+.author-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+}
+.author-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.author-avatar-fallback {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.author-info h4 {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.2rem;
+}
+.author-info .author-nationality {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: white;
+    background: var(--primary);
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+}
+.author-info .author-bio {
+    font-size: 0.78rem;
+    color: var(--gray);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+/* ===== BOOKS SECTION ===== */
+.books-section h2 {
+    font-size: 1.35rem;
+    margin-bottom: 1.25rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.book-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: var(--transition);
+    border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+.book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.book-card-img-wrap {
+    position: relative;
+    overflow: hidden;
+}
+.book-card-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.book-card:hover .book-card-image {
+    transform: scale(1.05);
+}
+.book-card-placeholder {
+    width: 100%;
+    height: 220px;
+    background: linear-gradient(135deg, #C2420A 0%, #EA8B2F 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+.book-card-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: var(--transition);
+}
+.book-card:hover .book-card-overlay { opacity: 1; }
+.overlay-btn {
+    width: 42px;
+    height: 42px;
+    background: white;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+}
+.overlay-btn:hover { background: var(--accent); color: white; }
+
+.book-card-content {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.book-card-content h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
+    color: var(--dark);
+}
+.book-card-content .author {
+    color: var(--gray);
+    font-size: 0.85rem;
+    margin: 0 0 0.5rem;
+}
+.book-card-content .rating {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+.rating .stars { color: #F59E0B; font-size: 0.85rem; letter-spacing: 1px; }
+.rating .rating-text { color: var(--gray); font-size: 0.8rem; }
+
+.book-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+.book-card-footer .price {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.15rem;
+    margin: 0;
+}
+.book-card-footer .stock {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+}
+.stock-in { background: var(--success-light); color: #065F46; }
+.stock-out { background: var(--danger-light); color: #991B1B; }
+
+.book-card-actions {
+    padding: 0 1.25rem 1.25rem;
+    display: flex;
+    gap: 0.5rem;
+}
+.book-card-actions .btn {
+    flex: 1;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.65rem 0.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+}
+.btn-primary-sm {
+    background: var(--primary);
+    color: white;
+}
+.btn-primary-sm:hover { background: var(--primary-dark); }
+.btn-outline-sm {
+    background: transparent;
+    border: 2px solid var(--gray-light);
+    color: var(--text);
+}
+.btn-outline-sm:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray);
+}
+.empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { color: var(--dark); margin-bottom: 0.5rem; }
+
+@media (max-width: 600px) {
+    .books-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .book-card-image, .book-card-placeholder { height: 160px; }
+    .authors-grid { grid-template-columns: 1fr; }
+    .category-header .stats { flex-direction: column; gap: 0.5rem; }
+}
+</style>
+
+<!-- Category Header -->
+<div class="category-header">
+    <div class="breadcrumb">
+        <a href="/">Trang chủ</a> &rsaquo; <a href="/books/">Sách</a> &rsaquo; {{ category.name }}
+    </div>
+    <h1>{{ category.name }}</h1>
+    {% if category.description %}
+    <p>{{ category.description }}</p>
+    {% endif %}
+    <div class="stats">
+        <div class="stat"><strong>{{ books|length }}</strong> cuốn sách</div>
+        <div class="stat"><strong>{{ authors|length }}</strong> tác giả</div>
+    </div>
+</div>
+
+<!-- Authors Section -->
+{% if authors %}
+<div class="authors-section">
+    <h2>✍️ Tác giả trong thể loại này</h2>
+    <div class="authors-grid">
+        {% for author in authors %}
+        <div class="author-card">
+            <img class="author-avatar" 
+                 src="https://ui-avatars.com/api/?name={{ author.name|urlencode }}&size=112&background=random&color=fff&bold=true&format=svg" 
+                 alt="{{ author.name }}"
+                 loading="lazy"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="author-avatar-fallback" style="display:none;background:linear-gradient(135deg,var(--primary),var(--accent))">
+                {{ author.name|truncatechars:1 }}
+            </div>
+            <div class="author-info">
+                <h4>{{ author.name }}</h4>
+                {% if author.nationality %}
+                <span class="author-nationality">{{ author.nationality }}</span>
+                {% endif %}
+                {% if author.bio %}
+                <p class="author-bio">{{ author.bio|truncatechars:60 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Books Section -->
+<div class="books-section">
+    <h2>📚 Sách thuộc thể loại {{ category.name }}</h2>
+    {% if books %}
+    <div class="books-grid">
+        {% for book in books %}
+        <div class="book-card">
+            <a href="/books/{{ book.book_id }}/" style="text-decoration:none;color:inherit;">
+                <div class="book-card-img-wrap">
+                    <img src="{% if book.cover_image_url %}{{ book.cover_image_url }}{% else %}https://picsum.photos/seed/{{ book.book_id }}/400/300{% endif %}" 
+                         alt="{{ book.title }}" class="book-card-image" loading="lazy"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="book-card-placeholder" style="display:none;">📚</div>
+                    <div class="book-card-overlay">
+                        <button class="overlay-btn" onclick="event.preventDefault();event.stopPropagation();window.location.href='/books/{{ book.book_id }}/'">👁</button>
+                        <button class="overlay-btn" onclick="event.preventDefault();event.stopPropagation();addToCart('{{ book.book_id }}')">🛒</button>
+                    </div>
+                </div>
+            </a>
+            <div class="book-card-content">
+                <h3>{{ book.title }}</h3>
+                <p class="author" data-author-id="{{ book.author_id }}">
+                    {% for aid, a in author_map.items %}
+                        {% if aid == book.author_id|slugify %}{{ a.name }}{% endif %}
+                    {% endfor %}
+                </p>
+                <div class="rating">
+                    <span class="stars" data-rating="{{ book.average_rating|default:'0' }}"></span>
+                    <span class="rating-text">({{ book.rating_count|default:'0' }})</span>
+                </div>
+                <div class="book-card-footer">
+                    <span class="price">{{ book.price|floatformat:0 }}đ</span>
+                    {% if book.stock_quantity > 0 %}
+                    <span class="stock stock-in">Còn hàng</span>
+                    {% else %}
+                    <span class="stock stock-out">Hết hàng</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="book-card-actions">
+                <a href="/books/{{ book.book_id }}/" class="btn btn-outline-sm">Chi tiết</a>
+                <button class="btn btn-primary-sm" onclick="addToCart('{{ book.book_id }}')">Thêm giỏ</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>Chưa có sách nào</h3>
+        <p>Thể loại này chưa có sách. Hãy quay lại sau!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Render star ratings
+function renderStars(rating) {
+    var full = Math.floor(rating);
+    var half = (rating - full) >= 0.5 ? 1 : 0;
+    var empty = 5 - full - half;
+    return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+}
+
+document.querySelectorAll('.stars[data-rating]').forEach(function(el) {
+    var r = parseFloat(el.getAttribute('data-rating')) || 0;
+    el.textContent = renderStars(r);
+});
+
+// Author name resolution via JS (in case Django template lookup fails)
+var authorMap = {};
+fetch('/api/authors/')
+    .then(function(r) { return r.json(); })
+    .then(function(authors) {
+        authors.forEach(function(a) { authorMap[a.author_id] = a.name; });
+        document.querySelectorAll('.author[data-author-id]').forEach(function(el) {
+            var aid = el.getAttribute('data-author-id');
+            if (aid && authorMap[aid] && !el.textContent.trim()) {
+                el.textContent = authorMap[aid];
+            }
+        });
+    })
+    .catch(function() {});
+
+// Add to cart
+function addToCart(bookId) {
+    var customerId = localStorage.getItem('customer_id');
+    if (!customerId) {
+        showToast('Vui lòng đăng nhập để thêm vào giỏ hàng');
+        window.location.href = '/login/';
+        return;
+    }
+    fetch('/api/cart/' + customerId + '/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ book_id: bookId, quantity: 1 })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) {
+            showToast('Lỗi: ' + data.error);
+        } else {
+            showToast('Đã thêm vào giỏ hàng! 🛒');
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+        }
+    })
+    .catch(function() { showToast('Lỗi kết nối'); });
+}
+</script>
+{% endblock %}

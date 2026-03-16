@@ -1,0 +1,528 @@
+{% extends 'base.html' %}
+
+{% block title %}Trang chủ - BookStore{% endblock %}
+
+{% block content %}
+<style>
+    /* ===== HERO SECTION ===== */
+    .hero {
+        background: linear-gradient(135deg, var(--primary-light) 0%, #FEF3E2 50%, #FFF7ED 100%);
+        border-radius: 24px;
+        padding: 3.5rem 3rem;
+        margin-bottom: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(234, 139, 47, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: var(--accent-light);
+        color: #92400E;
+        padding: 0.4rem 1rem;
+        border-radius: var(--radius-full);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+    }
+    .hero-content { position: relative; z-index: 1; flex: 1; }
+    .hero-content h1 {
+        font-size: 3rem;
+        color: var(--dark);
+        margin-bottom: 1.25rem;
+        line-height: 1.15;
+        font-weight: 700;
+    }
+    .hero-content h1 .highlight {
+        color: var(--primary);
+        display: block;
+    }
+    .hero-content p {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        max-width: 480px;
+        line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .hero-actions .btn {
+        padding: 0.85rem 2rem;
+        font-size: 1rem;
+    }
+    .hero-image {
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+    .hero-image-container {
+        width: 380px;
+        height: 320px;
+        background: linear-gradient(135deg, #92400E, #78350F);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10rem;
+        box-shadow: var(--shadow-xl);
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-image-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40%;
+        background: linear-gradient(transparent, rgba(0,0,0,0.15));
+    }
+    .hero-float-card {
+        position: absolute;
+        bottom: -15px;
+        right: -15px;
+        background: white;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .hero-float-card .count { color: var(--primary); font-size: 1.1rem; }
+
+    /* ===== CATEGORY SECTION ===== */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 1.75rem;
+    }
+    .section-header h2 {
+        font-size: 1.75rem;
+        margin: 0;
+    }
+    .section-header p {
+        color: var(--gray);
+        font-size: 0.95rem;
+        margin-top: 0.35rem;
+    }
+    .section-header a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: var(--transition);
+    }
+    .section-header a:hover { gap: 0.6rem; }
+
+    .categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 3.5rem;
+    }
+    .category-card {
+        position: relative;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        text-decoration: none;
+        color: white;
+        height: 180px;
+        display: flex;
+        align-items: flex-end;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+    }
+    .category-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+    .category-card-bg {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+    }
+    .cat-0 .category-card-bg { background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%); }
+    .cat-1 .category-card-bg { background: linear-gradient(135deg, #7B2D26 0%, #C2420A 100%); }
+    .cat-2 .category-card-bg { background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%); }
+    .cat-3 .category-card-bg { background: linear-gradient(135deg, #3C1642 0%, #7B2869 100%); }
+    .cat-4 .category-card-bg { background: linear-gradient(135deg, #1A2980 0%, #26D0CE 100%); }
+    .cat-5 .category-card-bg { background: linear-gradient(135deg, #92400E 0%, #D97706 100%); }
+    .category-card-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(transparent 30%, rgba(0,0,0,0.6) 100%);
+    }
+    .category-card-info {
+        position: relative;
+        z-index: 1;
+        padding: 1.25rem;
+    }
+    .category-card-info h3 {
+        color: white;
+        font-size: 1.1rem;
+        margin: 0 0 0.2rem;
+    }
+    .category-card-info span {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* ===== FEATURED BOOKS ===== */
+    .books-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    .book-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    .book-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-xl);
+    }
+    .book-card-img-wrap {
+        position: relative;
+        overflow: hidden;
+    }
+    .book-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .book-card:hover img {
+        transform: scale(1.05);
+    }
+    .book-card .book-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .book-card:hover .book-overlay { opacity: 1; }
+    .book-overlay-btn {
+        width: 42px;
+        height: 42px;
+        background: white;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+    }
+    .book-overlay-btn:hover { background: var(--accent); color: white; }
+    .book-card .book-info { padding: 1.25rem; }
+    .book-card h3 {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 0.35rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--dark);
+    }
+    .book-card .book-author {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    .book-card .book-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-bottom: 0.6rem;
+    }
+    .book-card .book-stars { color: #F59E0B; font-size: 0.85rem; letter-spacing: 1px; }
+    .book-card .book-rating-text { color: var(--gray); font-size: 0.8rem; }
+    .book-card .book-price {
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 1.15rem;
+    }
+    .book-card .book-price-old {
+        color: var(--gray);
+        text-decoration: line-through;
+        font-size: 0.85rem;
+        font-weight: 400;
+        margin-left: 0.5rem;
+    }
+    .book-card .book-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: var(--danger);
+        color: white;
+        padding: 0.25rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        z-index: 2;
+    }
+
+    /* ===== PROMO BANNER ===== */
+    .promo-banner {
+        background: linear-gradient(135deg, var(--dark) 0%, #2D2D2D 100%);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem 3rem;
+        margin: 3.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+        color: white;
+    }
+    .promo-banner h2 {
+        color: white;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .promo-banner p {
+        opacity: 0.75;
+        max-width: 400px;
+        line-height: 1.6;
+    }
+    .promo-banner .btn {
+        background: var(--accent);
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+        .hero { flex-direction: column; text-align: center; padding: 2rem 1.5rem; }
+        .hero-content p { margin-left: auto; margin-right: auto; }
+        .hero-actions { justify-content: center; }
+        .hero-image-container { width: 280px; height: 240px; font-size: 7rem; }
+        .hero-content h1 { font-size: 2.2rem; }
+        .promo-banner { flex-direction: column; text-align: center; padding: 2rem; }
+        .categories { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">✨ Bộ sưu tập mới</div>
+        <h1>
+            Khám phá cuốn sách
+            <span class="highlight">tuyệt vời tiếp theo</span>
+        </h1>
+        <p>Bộ sưu tập sách bán chạy, tác phẩm ẩn giấu và kinh điển văn học. Từ tiểu thuyết hấp dẫn đến phiêu lưu kỳ thú, tìm cuốn sách nói lên tâm hồn bạn.</p>
+        <div class="hero-actions">
+            <a href="/books/" class="btn">Khám phá ngay →</a>
+            <a href="/books/" class="btn btn-outline">Sách mới</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="hero-image-container">📚</div>
+        <div class="hero-float-card">
+            <span class="count" id="heroBookCount">0+</span>
+            <span>Đầu sách</span>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories -->
+<section style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+        <div>
+            <h2>Duyệt theo danh mục</h2>
+            <p>Khám phá bộ sưu tập được phân loại cẩn thận</p>
+        </div>
+        <a href="/books/">Xem tất cả →</a>
+    </div>
+    <div class="categories">
+        <a href="/books/" class="category-card cat-0">
+            <div class="category-card-bg">📖</div>
+            <div class="category-card-overlay"></div>
+            <div class="category-card-info">
+                <h3>Văn học</h3>
+                <span>Tiểu thuyết & Truyện ngắn</span>
+            </div>
+        </a>
+        <a href="/books/" class="category-card cat-1">
+            <div class="category-card-bg">💼</div>
+            <div class="category-card-overlay"></div>
+            <div class="category-card-info">
+                <h3>Kinh tế</h3>
+                <span>Kinh doanh & Tài chính</span>
+            </div>
+        </a>
+        <a href="/books/" class="category-card cat-2">
+            <div class="category-card-bg">🔬</div>
+            <div class="category-card-overlay"></div>
+            <div class="category-card-info">
+                <h3>Khoa học</h3>
+                <span>Khoa học & Công nghệ</span>
+            </div>
+        </a>
+        <a href="/books/" class="category-card cat-3">
+            <div class="category-card-bg">🎨</div>
+            <div class="category-card-overlay"></div>
+            <div class="category-card-info">
+                <h3>Nghệ thuật</h3>
+                <span>Nghệ thuật & Thiết kế</span>
+            </div>
+        </a>
+        <a href="/books/" class="category-card cat-5">
+            <div class="category-card-bg">👶</div>
+            <div class="category-card-overlay"></div>
+            <div class="category-card-info">
+                <h3>Thiếu nhi</h3>
+                <span>Sách cho bé</span>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- Promo Banner -->
+<section class="promo-banner">
+    <div>
+        <h2>📦 Miễn phí giao hàng</h2>
+        <p>Đơn hàng trên 500.000đ được miễn phí vận chuyển toàn quốc. Áp dụng cho tất cả sách!</p>
+    </div>
+    <a href="/books/" class="btn">Mua sắm ngay →</a>
+</section>
+
+<!-- Featured Books -->
+<section>
+    <div class="section-header">
+        <div>
+            <h2>Sách nổi bật</h2>
+            <p>Những cuốn sách được yêu thích nhất tuần này</p>
+        </div>
+        <a href="/books/">Xem tất cả →</a>
+    </div>
+    <div class="books-row" id="recentBooks">
+        <p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--gray);">Đang tải...</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Render star ratings dynamically
+function renderStars(rating) {
+    var fullStars = Math.floor(rating);
+    var hasHalf = rating - fullStars >= 0.5;
+    var stars = '';
+    for (var i = 1; i <= 5; i++) {
+        if (i <= fullStars) stars += '★';
+        else if (i === fullStars + 1 && hasHalf) stars += '★';
+        else stars += '☆';
+    }
+    return stars;
+}
+
+Promise.all([
+    fetch('/api/books/').then(function(r) { return r.json(); }).catch(function() { return []; }),
+    fetch('/api/categories/').then(function(r) { return r.json(); }).catch(function() { return []; }),
+    fetch('/api/authors/').then(function(r) { return r.json(); }).catch(function() { return []; })
+]).then(function(results) {
+    var books = results[0];
+    var categories = results[1];
+    var authors = results[2];
+    
+    // Update hero book count
+    document.getElementById('heroBookCount').textContent = books.length + '+';
+    
+    if (books.length > 0) {
+        var recent = books.slice(0, 8);
+        var html = '';
+        for (var i = 0; i < recent.length; i++) {
+            var book = recent[i];
+            var authorName = book.author_name || 'Chưa rõ tác giả';
+            var rating = parseFloat(book.average_rating) || 0;
+            var reviews = book.total_reviews || 0;
+            var imgSrc = book.cover_image_url || 'https://picsum.photos/seed/' + book.book_id + '/400/300';
+            
+            html += '<a href="/books/' + book.book_id + '/" class="book-card">' +
+                '<div class="book-card-img-wrap">' +
+                '<img src="' + imgSrc + '" ' +
+                'onerror="this.src=\'https://picsum.photos/seed/' + book.book_id + '/400/300\'" alt="' + book.title + '">' +
+                '<div class="book-overlay">' +
+                '<button class="book-overlay-btn" onclick="event.preventDefault(); event.stopPropagation(); window.location.href=\'/books/' + book.book_id + '/\'">👁</button>' +
+                '<button class="book-overlay-btn" onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(\'' + book.book_id + '\', this)">🛒</button>' +
+                '</div>' +
+                '</div>' +
+                '<div class="book-info">' +
+                '<h3>' + book.title + '</h3>' +
+                '<div class="book-author">' + authorName + '</div>' +
+                '<div class="book-rating">' +
+                '<span class="book-stars">' + renderStars(rating) + '</span>' +
+                '<span class="book-rating-text">' + rating.toFixed(1) + '</span>' +
+                '</div>' +
+                '<div class="book-price">' + Math.round(book.price).toLocaleString() + 'đ</div>' +
+                '</div></a>';
+        }
+        document.getElementById('recentBooks').innerHTML = html;
+    } else {
+        document.getElementById('recentBooks').innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--gray);">Chưa có sách nào.</p>';
+    }
+});
+
+function quickAddToCart(bookId, btn) {
+    var customerId = localStorage.getItem('customer_id');
+    if (!customerId) {
+        alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
+        window.location.href = '/login/';
+        return;
+    }
+    
+    fetch('/api/cart/' + customerId + '/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({book_id: bookId, quantity: 1})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) {
+            showToast(data.error);
+        } else {
+            showToast('Đã thêm vào giỏ hàng!');
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+        }
+    })
+    .catch(function() { showToast('Lỗi khi thêm vào giỏ'); });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Orders - Staff{% endblock %}
+
+{% block content %}
+<div id="content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1>🛒 Manage Orders</h1>
+        <a href="/staff/dashboard/" class="btn">← Back to Dashboard</a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <label>Filter by Status:</label>
+            <select id="statusFilter" onchange="filterOrders()" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd;">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
+            </select>
+            <span id="orderCount" style="margin-left: auto; color: #666;"></span>
+        </div>
+    </div>
+    
+    <div class="card">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #ddd;">
+                    <th style="text-align: left; padding: 0.5rem;">Order #</th>
+                    <th style="text-align: left;">Customer ID</th>
+                    <th style="text-align: left;">Date</th>
+                    <th style="text-align: center;">Status</th>
+                    <th style="text-align: right;">Subtotal</th>
+                    <th style="text-align: right;">Total</th>
+                    <th style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTable">
+                <tr><td colspan="7" style="text-align: center; padding: 1rem;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div id="orderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; max-width: 600px; margin: 50px auto; padding: 2rem; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>Order Details</h2>
+            <button onclick="closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+        </div>
+        <div id="orderDetails"></div>
+        <div style="margin-top: 1rem;">
+            <label>Update Status:</label>
+            <select id="newStatus" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd; margin-right: 0.5rem;">
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
+            </select>
+            <button class="btn" onclick="updateOrderStatus()">Update</button>
+        </div>
+    </div>
+</div>
+
+<div id="loginRequired" style="display: none; text-align: center; padding: 3rem;">
+    <h2>🔒 Login Required</h2>
+    <a href="/staff/login/" class="btn">Go to Staff Login</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const staffToken = localStorage.getItem('staff_token');
+let allOrders = [];
+let currentOrderId = null;
+
+if (!staffToken) {
+    document.getElementById('loginRequired').style.display = 'block';
+} else {
+    document.getElementById('content').style.display = 'block';
+    loadOrders();
+}
+
+function loadOrders() {
+    fetch('/api/orders/')
+        .then(r => r.json())
+        .then(orders => {
+            allOrders = Array.isArray(orders) ? orders : [];
+            renderOrders(allOrders);
+        })
+        .catch(() => {
+            document.getElementById('ordersTable').innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading orders</td></tr>';
+        });
+}
+
+function filterOrders() {
+    const status = document.getElementById('statusFilter').value;
+    const filtered = status ? allOrders.filter(o => o.status === status) : allOrders;
+    renderOrders(filtered);
+}
+
+function renderOrders(orders) {
+    const tbody = document.getElementById('ordersTable');
+    document.getElementById('orderCount').textContent = `${orders.length} order(s)`;
+    
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No orders found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = orders.map(o => `
+        <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.5rem; font-weight: 500;">${o.order_number || o.order_id.slice(0,8)}</td>
+            <td style="font-size: 0.85rem; color: #666;">${o.customer_id ? o.customer_id.slice(0,8) + '...' : '-'}</td>
+            <td>${formatDate(o.order_date)}</td>
+            <td style="text-align: center;">${getStatusBadge(o.status)}</td>
+            <td style="text-align: right;">$${parseFloat(o.subtotal || 0).toFixed(2)}</td>
+            <td style="text-align: right; font-weight: 500;">$${parseFloat(o.total_amount || 0).toFixed(2)}</td>
+            <td style="text-align: center;">
+                <button onclick="viewOrder('${o.order_id}')" style="background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-right: 4px;">View</button>
+                ${o.status === 'pending' ? `<button onclick="cancelOrder('${o.order_id}')" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Cancel</button>` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getStatusBadge(status) {
+    const colors = {
+        'pending': '#ffc107',
+        'confirmed': '#17a2b8',
+        'processing': '#007bff',
+        'shipped': '#6f42c1',
+        'delivered': '#28a745',
+        'cancelled': '#dc3545',
+        'refunded': '#6c757d'
+    };
+    const color = colors[status] || '#6c757d';
+    return `<span style="background:${color};color:white;padding:2px 8px;border-radius:4px;font-size:0.8rem;">${status}</span>`;
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+}
+
+function viewOrder(orderId) {
+    currentOrderId = orderId;
+    const order = allOrders.find(o => o.order_id === orderId);
+    if (!order) return;
+    
+    document.getElementById('newStatus').value = order.status;
+    
+    let itemsHtml = '';
+    if (order.items && order.items.length > 0) {
+        itemsHtml = `
+            <h4 style="margin-top: 1rem;">Items:</h4>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <th style="text-align: left; padding: 0.25rem;">Book</th>
+                    <th style="text-align: right;">Qty</th>
+                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+                ${order.items.map(i => `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 0.25rem;">${i.book_title || i.book_id}</td>
+                        <td style="text-align: right;">${i.quantity}</td>
+                        <td style="text-align: right;">$${parseFloat(i.unit_price || 0).toFixed(2)}</td>
+                        <td style="text-align: right;">$${parseFloat(i.total_price || 0).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </table>
+        `;
+    }
+    
+    document.getElementById('orderDetails').innerHTML = `
+        <p><strong>Order #:</strong> ${order.order_number || order.order_id}</p>
+        <p><strong>Customer ID:</strong> ${order.customer_id || '-'}</p>
+        <p><strong>Date:</strong> ${formatDate(order.order_date)}</p>
+        <p><strong>Status:</strong> ${getStatusBadge(order.status)}</p>
+        <hr style="margin: 1rem 0;">
+        <p><strong>Subtotal:</strong> $${parseFloat(order.subtotal || 0).toFixed(2)}</p>
+        <p><strong>Discount:</strong> -$${parseFloat(order.discount_amount || 0).toFixed(2)}</p>
+        <p><strong>Shipping:</strong> $${parseFloat(order.shipping_fee || 0).toFixed(2)}</p>
+        <p><strong>Tax:</strong> $${parseFloat(order.tax_amount || 0).toFixed(2)}</p>
+        <p><strong>Total:</strong> <span style="font-size: 1.2rem; font-weight: bold;">$${parseFloat(order.total_amount || 0).toFixed(2)}</span></p>
+        ${order.shipping_address ? `<hr style="margin: 1rem 0;"><p><strong>Shipping Address:</strong><br>${order.shipping_address}</p>` : ''}
+        ${order.notes ? `<p><strong>Notes:</strong> ${order.notes}</p>` : ''}
+        ${itemsHtml}
+    `;
+    
+    document.getElementById('orderModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('orderModal').style.display = 'none';
+    currentOrderId = null;
+}
+
+function updateOrderStatus() {
+    if (!currentOrderId) return;
+    const newStatus = document.getElementById('newStatus').value;
+    
+    fetch(`/api/orders/${currentOrderId}/detail/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(r => {
+        if (r.ok) {
+            alert('Order status updated!');
+            closeModal();
+            loadOrders();
+        } else {
+            r.json().then(data => alert('Failed: ' + (data.error || 'Unknown error'))).catch(() => alert('Failed to update order status'));
+        }
+    })
+    .catch(() => alert('Error updating order'));
+}
+
+function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    
+    fetch(`/api/orders/${orderId}/cancel/`, { method: 'POST' })
+    .then(r => {
+        if (r.ok) {
+            alert('Order cancelled!');
+            loadOrders();
+        } else {
+            alert('Failed to cancel order');
+        }
+    })
+    .catch(() => alert('Error cancelling order'));
+}
+
+// Close modal on outside click
+document.getElementById('orderModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

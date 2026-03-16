@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Giỏ hàng - BookStore{% endblock %}
+
+{% block content %}
+<style>
+.cart-page { max-width: 900px; margin: 0 auto; }
+.cart-page > h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+.cart-login-required, .cart-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+.cart-login-required .icon, .cart-empty .icon { font-size: 4rem; margin-bottom: 1.25rem; }
+.cart-login-required h2, .cart-empty h2 { margin: 0 0 0.5rem; font-size: 1.4rem; }
+.cart-login-required p, .cart-empty p { color: var(--gray); margin-bottom: 1.5rem; }
+
+.cart-items-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.cart-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto auto;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--gray-light);
+}
+.cart-item:last-child { border-bottom: none; }
+.cart-item-header {
+    background: var(--gray-lighter);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--gray);
+    padding: 0.85rem 1.5rem;
+}
+.cart-item-title { font-weight: 600; color: var(--dark); }
+.cart-total {
+    background: var(--primary-light);
+    border-top: 2px solid var(--accent);
+}
+.btn-remove {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: none;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+.btn-remove:hover { background: var(--danger); color: white; }
+
+.cart-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+}
+.cart-actions .btn { padding: 0.85rem 1.5rem; }
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.loading-spinner { animation: spin 1s linear infinite; display: inline-block; }
+
+@media (max-width: 600px) {
+    .cart-item { grid-template-columns: 1fr; text-align: center; }
+    .cart-item-header { display: none; }
+    .cart-actions { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="cart-page">
+    <h1>🛒 Giỏ hàng</h1>
+
+    <div id="loginRequired" style="display: none;" class="cart-login-required">
+        <div class="icon">🔒</div>
+        <h2>Vui lòng đăng nhập</h2>
+        <p>Bạn cần đăng nhập để xem giỏ hàng.</p>
+        <a href="/login/" class="btn">Đăng nhập</a>
+    </div>
+
+    <div id="loadingState" style="display: none;" class="cart-login-required">
+        <div class="icon loading-spinner">⏳</div>
+        <p>Đang tải giỏ hàng...</p>
+    </div>
+
+    <div id="cartContent" style="display: none;">
+        <div id="cartItems" class="cart-items-card"></div>
+        
+        <div id="cartSummary" style="display: none;" class="cart-actions">
+            <a href="/books/" class="btn btn-outline">← Tiếp tục mua sắm</a>
+            <button class="btn" onclick="checkout()">Thanh toán →</button>
+        </div>
+    </div>
+
+    <div id="emptyCart" style="display: none;" class="cart-empty">
+        <div class="icon">🛒</div>
+        <h2>Giỏ hàng trống</h2>
+        <p>Thêm sách vào giỏ hàng để bắt đầu!</p>
+        <a href="/books/" class="btn">Khám phá sách</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const customerId = localStorage.getItem('customer_id');
+
+if (!customerId) {
+    document.getElementById('loginRequired').style.display = 'block';
+} else {
+    document.getElementById('loadingState').style.display = 'block';
+    loadCart();
+}
+
+function loadCart() {
+    fetch('/api/cart/' + customerId + '/')
+        .then(r => r.json())
+        .then(cart => {
+            document.getElementById('loadingState').style.display = 'none';
+            
+            if (cart.items && cart.items.length > 0) {
+                document.getElementById('cartContent').style.display = 'block';
+                document.getElementById('cartSummary').style.display = 'grid';
+                
+                let total = 0;
+                const itemsHtml = cart.items.map(item => {
+                    const subtotal = item.quantity * parseFloat(item.unit_price);
+                    total += subtotal;
+                    return '<div class="cart-item">' +
+                        '<div class="cart-item-title">📖 ' + (item.book_title || 'Sách #' + item.book_id) + '</div>' +
+                        '<div style="color: var(--gray);">' + Math.round(item.unit_price).toLocaleString() + 'đ</div>' +
+                        '<div style="background: var(--gray-lighter); padding: 0.3rem 0.8rem; border-radius: var(--radius);">× ' + item.quantity + '</div>' +
+                        '<div style="font-weight: 600; color: var(--primary);">' + Math.round(subtotal).toLocaleString() + 'đ</div>' +
+                        '<button class="btn-remove" onclick="removeItem(\'' + item.book_id + '\')">✕ Xóa</button>' +
+                        '</div>';
+                }).join('');
+                
+                document.getElementById('cartItems').innerHTML = 
+                    '<div class="cart-item cart-item-header">' +
+                        '<div>Sản phẩm</div>' +
+                        '<div>Giá</div>' +
+                        '<div>SL</div>' +
+                        '<div>Tạm tính</div>' +
+                        '<div></div>' +
+                    '</div>' +
+                    itemsHtml +
+                    '<div class="cart-item cart-total">' +
+                        '<div style="font-weight: 600;">Tổng cộng (' + cart.items.length + ' sản phẩm)</div>' +
+                        '<div></div>' +
+                        '<div></div>' +
+                        '<div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">' +
+                            Math.round(cart.total_amount || total).toLocaleString() + 'đ' +
+                        '</div>' +
+                        '<div></div>' +
+                    '</div>';
+            } else {
+                document.getElementById('emptyCart').style.display = 'block';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyCart').style.display = 'block';
+        });
+}
+
+function removeItem(bookId) {
+    if (confirm('Xóa sản phẩm này khỏi giỏ hàng?')) {
+        fetch('/api/cart/' + customerId + '/items/' + bookId + '/', { method: 'DELETE' })
+            .then(() => {
+                document.getElementById('cartContent').style.display = 'none';
+                document.getElementById('loadingState').style.display = 'block';
+                loadCart();
+                if (typeof updateCartBadge === 'function') updateCartBadge();
+            })
+            .catch(err => alert('Lỗi xóa sản phẩm'));
+    }
+}
+
+function checkout() {
+    window.location.href = '/checkout/';
+}
+</script>
+{% endblock %}

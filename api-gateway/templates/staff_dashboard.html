@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Dashboard - BookStore Admin{% endblock %}
+
+{% block content %}
+<div id="dashboardContent" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1>👔 Staff Dashboard</h1>
+        <div>
+            <span id="staffInfo" style="margin-right: 1rem;"></span>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
+        <div class="card" style="text-align: center;">
+            <h3 id="totalBooks">-</h3>
+            <p>📚 Books</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <h3 id="totalCustomers">-</h3>
+            <p>👤 Customers</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <h3 id="totalOrders">-</h3>
+            <p>🛒 Orders</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <h3 id="totalCategories">-</h3>
+            <p>📂 Categories</p>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <h2>Quick Actions</h2>
+    <div class="grid" style="margin-bottom: 2rem;">
+        <div class="card">
+            <h3>📚 Manage Books</h3>
+            <p>Add, edit, or remove books from the catalog</p>
+            <a href="/staff/books/" class="btn">View Books</a>
+        </div>
+        <div class="card">
+            <h3>👤 Manage Customers</h3>
+            <p>View and manage customer accounts</p>
+            <a href="/staff/customers/" class="btn">View Customers</a>
+        </div>
+        <div class="card">
+            <h3>🛒 Manage Orders</h3>
+            <p>Process and track orders</p>
+            <a href="/staff/orders/" class="btn">View Orders</a>
+        </div>
+        <div class="card">
+            <h3>📂 Manage Catalog</h3>
+            <p>Manage categories, authors, publishers</p>
+            <a href="/staff/catalog/" class="btn">View Catalog</a>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <h2>Recent Books</h2>
+    <div class="card">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid #ddd;">
+                    <th style="text-align: left; padding: 0.5rem;">Title</th>
+                    <th style="text-align: left;">Author</th>
+                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: right;">Stock</th>
+                </tr>
+            </thead>
+            <tbody id="recentBooks">
+                <tr><td colspan="4" style="text-align: center; padding: 1rem;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="loginRequired" style="display: none; text-align: center; padding: 3rem;">
+    <h2>🔒 Login Required</h2>
+    <p style="margin: 1rem 0;">Please login to access the staff dashboard.</p>
+    <a href="/staff/login/" class="btn">Go to Staff Login</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Check if logged in
+const staffToken = localStorage.getItem('staff_token');
+const staffName = localStorage.getItem('staff_name');
+const staffRole = localStorage.getItem('staff_role');
+
+if (!staffToken) {
+    document.getElementById('loginRequired').style.display = 'block';
+} else {
+    document.getElementById('dashboardContent').style.display = 'block';
+    document.getElementById('staffInfo').innerHTML = `👤 ${staffName} <span style="background:#007bff;color:white;padding:2px 8px;border-radius:4px;font-size:0.8rem;">${staffRole}</span>`;
+    loadDashboardData();
+}
+
+function loadDashboardData() {
+    // Load books count
+    fetch('/api/books/')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('totalBooks').textContent = Array.isArray(data) ? data.length : 0;
+            // Show recent books
+            if (Array.isArray(data) && data.length > 0) {
+                const tbody = document.getElementById('recentBooks');
+                tbody.innerHTML = data.slice(0, 5).map(book => `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 0.5rem;">${book.title}</td>
+                        <td>${book.author_name || '-'}</td>
+                        <td style="text-align: right;">$${book.price}</td>
+                        <td style="text-align: right;">${book.stock_quantity}</td>
+                    </tr>
+                `).join('');
+            }
+        })
+        .catch(() => document.getElementById('totalBooks').textContent = '?');
+    
+    // Load customers count
+    fetch('/api/customers/')
+        .then(r => r.json())
+        .then(data => document.getElementById('totalCustomers').textContent = Array.isArray(data) ? data.length : 0)
+        .catch(() => document.getElementById('totalCustomers').textContent = '?');
+    
+    // Load categories count
+    fetch('/api/categories/')
+        .then(r => r.json())
+        .then(data => document.getElementById('totalCategories').textContent = Array.isArray(data) ? data.length : 0)
+        .catch(() => document.getElementById('totalCategories').textContent = '?');
+    
+    document.getElementById('totalOrders').textContent = '-';
+}
+
+function logout() {
+    localStorage.removeItem('staff_token');
+    localStorage.removeItem('staff_id');
+    localStorage.removeItem('staff_name');
+    localStorage.removeItem('staff_role');
+    window.location.href = '/staff/login/';
+}
+</script>
+{% endblock %}
