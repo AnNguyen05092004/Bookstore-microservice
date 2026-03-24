@@ -280,6 +280,20 @@
 .rating .stars { color: #F59E0B; font-size: 0.85rem; letter-spacing: 1px; }
 .rating .rating-text { color: var(--gray); font-size: 0.8rem; }
 
+.book-sold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #FFF4E8;
+    border: 1px solid #FBD8B8;
+    color: #B45309;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    margin-bottom: 0.55rem;
+}
+
 .book-card-footer {
     display: flex;
     justify-content: space-between;
@@ -330,8 +344,8 @@
 
 <!-- Page Header -->
 <div class="page-header">
-    <h1>Khám phá sách</h1>
-    <p>Tìm kiếm trong bộ sưu tập đa dạng với đủ thể loại</p>
+    <h1>{{ page_title|default:'Khám phá sách' }}</h1>
+    <p>{{ page_subtitle|default:'Tìm kiếm trong bộ sưu tập đa dạng với đủ thể loại' }}</p>
     <div class="results-count">
         Hiển thị <strong id="visibleCount">{{ books|length }}</strong> cuốn sách
     </div>
@@ -375,10 +389,11 @@
     <div>
         <div class="books-toolbar">
             <div class="search-wrap">
-                <input type="text" id="searchInput" placeholder="Tìm kiếm sách..." class="search-input" oninput="filterBooks()">
+                <input type="text" id="searchInput" value="{{ initial_query|default:'' }}" placeholder="Tìm kiếm sách..." class="search-input" oninput="filterBooks()">
             </div>
             <select id="sortSelect" class="sort-select" onchange="filterBooks()">
                 <option value="">Nổi bật</option>
+                <option value="best_selling" {% if bestseller_mode %}selected{% endif %}>Bán chạy nhất</option>
                 <option value="title">Tên A-Z</option>
                 <option value="price_low">Giá: Thấp → Cao</option>
                 <option value="price_high">Giá: Cao → Thấp</option>
@@ -387,7 +402,7 @@
 
         <div class="books-grid" id="booksGrid">
             {% for book in books %}
-            <div class="book-card" data-title="{{ book.title|lower }}" data-price="{{ book.price }}" data-author="{{ book.author_name|default:'' }}">
+            <div class="book-card" data-title="{{ book.title|lower }}" data-price="{{ book.price }}" data-author="{{ book.author_name|default:'' }}" data-rating="{{ book.average_rating|default:0 }}" data-sold="{{ book.total_sold|default:0 }}">
                 <a href="/books/{{ book.book_id }}/" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; flex: 1;">
                     <div class="book-card-img-wrap">
                         <img src="{% if book.cover_image_url %}{{ book.cover_image_url }}{% else %}https://picsum.photos/seed/{{ book.book_id }}/400/300{% endif %}" alt="{{ book.title }}" class="book-card-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -404,6 +419,7 @@
                             <span class="stars" data-rating="{{ book.average_rating|default:0 }}"></span>
                             <span class="rating-text">{{ book.average_rating|default:"0" }}</span>
                         </div>
+                        <div class="book-sold">Đã bán: {{ book.total_sold|default:0 }}</div>
                         <div class="book-card-footer">
                             <p class="price">{{ book.price }}đ</p>
                             {% if book.stock_quantity > 0 %}
@@ -534,11 +550,13 @@ function filterBooks() {
         const title = card.dataset.title || '';
         const price = parseFloat(card.dataset.price) || 0;
         const author = (card.dataset.author || '').toLowerCase();
+        const rating = parseFloat(card.dataset.rating) || 0;
         
         let show = true;
         if (!title.includes(search)) show = false;
         if (price > maxPrice) show = false;
         if (checkedAuthors.length > 0 && !checkedAuthors.includes(author)) show = false;
+        if (rating < minRating) show = false;
         
         if (show) {
             card.style.display = '';
@@ -552,6 +570,7 @@ function filterBooks() {
     if (sort) {
         const grid = document.getElementById('booksGrid');
         const sortedCards = cards.filter(c => c.style.display !== 'none').sort((a, b) => {
+            if (sort === 'best_selling') return (parseInt(b.dataset.sold || '0', 10) - parseInt(a.dataset.sold || '0', 10));
             if (sort === 'title') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
             if (sort === 'price_low') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
             if (sort === 'price_high') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);

@@ -4,525 +4,803 @@
 
 {% block content %}
 <style>
-    /* ===== HERO SECTION ===== */
+    /* ===== HERO - Light Split Layout ===== */
     .hero {
-        background: linear-gradient(135deg, var(--primary-light) 0%, #FEF3E2 50%, #FFF7ED 100%);
-        border-radius: 24px;
-        padding: 3.5rem 3rem;
-        margin-bottom: 3rem;
+        background: linear-gradient(140deg, #FFF8F1 0%, #FEF3E2 60%, #FDF7EF 100%);
+        border-radius: 28px;
+        padding: 4rem 4rem 4rem 4.5rem;
+        margin-bottom: 1.75rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 3rem;
         position: relative;
         overflow: hidden;
+        min-height: 460px;
     }
     .hero::before {
         content: '';
         position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(234, 139, 47, 0.08) 0%, transparent 70%);
-        border-radius: 50%;
+        top: -100px; left: -80px;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(234,139,47,0.12) 0%, transparent 70%);
+        border-radius: 50%; pointer-events: none;
     }
-    .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        background: var(--accent-light);
-        color: #92400E;
-        padding: 0.4rem 1rem;
-        border-radius: var(--radius-full);
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin-bottom: 1.25rem;
-    }
-    .hero-content { position: relative; z-index: 1; flex: 1; }
-    .hero-content h1 {
-        font-size: 3rem;
-        color: var(--dark);
-        margin-bottom: 1.25rem;
-        line-height: 1.15;
-        font-weight: 700;
-    }
-    .hero-content h1 .highlight {
-        color: var(--primary);
-        display: block;
-    }
-    .hero-content p {
-        color: var(--gray);
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-        max-width: 480px;
-        line-height: 1.7;
-    }
-    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .hero-actions .btn {
-        padding: 0.85rem 2rem;
-        font-size: 1rem;
-    }
-    .hero-image {
-        flex-shrink: 0;
-        position: relative;
-        z-index: 1;
-    }
-    .hero-image-container {
-        width: 380px;
-        height: 320px;
-        background: linear-gradient(135deg, #92400E, #78350F);
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10rem;
-        box-shadow: var(--shadow-xl);
-        position: relative;
-        overflow: hidden;
-    }
-    .hero-image-container::after {
+    .hero::after {
         content: '';
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40%;
-        background: linear-gradient(transparent, rgba(0,0,0,0.15));
+        bottom: -60px; right: 38%;
+        width: 280px; height: 280px;
+        background: radial-gradient(circle, rgba(234,84,10,0.07) 0%, transparent 70%);
+        border-radius: 50%; pointer-events: none;
     }
-    .hero-float-card {
-        position: absolute;
-        bottom: -15px;
-        right: -15px;
-        background: white;
-        padding: 0.75rem 1rem;
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-lg);
-        display: flex;
+    .hero-left { flex: 1; position: relative; z-index: 1; min-width: 0; }
+    .hero-eyebrow {
+        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-        font-weight: 600;
+        gap: 0.42rem;
+        background: rgba(194,65,12,0.09);
+        border: 1px solid rgba(194,65,12,0.22);
+        color: #92400E;
+        padding: 0.38rem 1rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        margin-bottom: 1.5rem;
     }
-    .hero-float-card .count { color: var(--primary); font-size: 1.1rem; }
+    .hero h1 {
+        font-size: 3.8rem;
+        color: #1C1917;
+        margin: 0 0 1.3rem;
+        line-height: 1.08;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .hero h1 .h1-accent { color: #C2410C; display: block; }
+    .hero-desc {
+        color: #78594A;
+        font-size: 1.06rem;
+        line-height: 1.78;
+        margin: 0 0 2.2rem;
+        max-width: 480px;
+    }
+    .hero-cta-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .hero-btn-main {
+        background: #C2410C;
+        color: white;
+        padding: 0.88rem 1.9rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.96rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        box-shadow: 0 6px 22px rgba(194,65,12,0.38);
+        transition: all 0.22s ease;
+    }
+    .hero-btn-main:hover { background: #9A3412; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(194,65,12,0.44); }
+    .hero-btn-ghost {
+        background: transparent;
+        border: 1.5px solid rgba(194,65,12,0.55);
+        color: #C2410C;
+        padding: 0.88rem 1.9rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.96rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        transition: all 0.22s ease;
+    }
+    .hero-btn-ghost:hover { background: rgba(194,65,12,0.06); border-color: #C2410C; }
 
-    /* ===== CATEGORY SECTION ===== */
+    /* Hero right image */
+    .hero-right { flex-shrink: 0; position: relative; z-index: 1; }
+    .hero-img-wrap {
+        width: 445px; height: 370px;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 22px 55px rgba(0,0,0,0.14), 0 4px 14px rgba(0,0,0,0.08);
+    }
+    .hero-img-wrap img {
+        width: 100%; height: 100%;
+        object-fit: cover; display: block;
+        transition: transform 9s ease;
+    }
+    .hero:hover .hero-img-wrap img { transform: scale(1.04); }
+    .hero-img-badge {
+        position: absolute;
+        bottom: -14px; left: -18px;
+        background: white;
+        border-radius: 14px;
+        padding: 0.72rem 1rem;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+        display: flex; align-items: center; gap: 0.55rem;
+        white-space: nowrap;
+    }
+    .hero-img-badge-icon {
+        width: 34px; height: 34px;
+        background: #FFF0E6; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        color: #E8540A;
+    }
+    .hero-badge-val { font-weight: 800; font-size: 1rem; color: #E8540A; line-height: 1; }
+    .hero-badge-lbl { font-size: 0.7rem; color: #9CA3AF; font-weight: 600; margin-top: 2px; }
+
+    /* ===== STATS BAR ===== */
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: #F0D5C0;
+        border: 1px solid #F0D5C0;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 3.5rem;
+        box-shadow: 0 4px 18px rgba(232,84,10,0.07);
+    }
+    .stat-item {
+        background: white;
+        padding: 1.5rem 1.75rem;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .stat-item:hover { background: #FFF9F5; }
+    .stat-val {
+        font-size: 2.1rem;
+        font-weight: 800;
+        color: #E8540A;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+    .stat-lbl { font-size: 0.83rem; color: #9CA3AF; font-weight: 600; }
+
+    /* ===== SECTION HEADER ===== */
     .section-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.6rem;
     }
-    .section-header h2 {
-        font-size: 1.75rem;
-        margin: 0;
-    }
-    .section-header p {
-        color: var(--gray);
-        font-size: 0.95rem;
-        margin-top: 0.35rem;
-    }
+    .section-header h2 { font-size: 1.8rem; margin: 0; }
+    .sh-sub { color: #9CA3AF; font-size: 0.88rem; margin-top: 0.3rem; }
     .section-header a {
-        color: var(--primary);
+        color: #E8540A;
         text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        display: flex;
+        font-weight: 700;
+        font-size: 0.88rem;
+        display: inline-flex;
         align-items: center;
         gap: 0.3rem;
-        transition: var(--transition);
+        white-space: nowrap;
+        transition: gap 0.2s;
     }
     .section-header a:hover { gap: 0.6rem; }
 
-    .categories {
+    /* ===== CATEGORIES BENTO ===== */
+    .categories-bento {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1.25rem;
+        grid-template-columns: 2fr 1fr 1fr;
+        grid-template-rows: 205px 205px;
+        gap: 1rem;
         margin-bottom: 3.5rem;
     }
-    .category-card {
+    .cat-tile {
         position: relative;
-        border-radius: var(--radius-lg);
+        border-radius: 20px;
         overflow: hidden;
         text-decoration: none;
         color: white;
-        height: 180px;
         display: flex;
         align-items: flex-end;
-        transition: var(--transition);
-        box-shadow: var(--shadow);
+        transition: transform 0.32s ease, box-shadow 0.32s ease;
     }
-    .category-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-xl);
-    }
-    .category-card-bg {
+    .cat-tile:hover { transform: scale(1.025); box-shadow: 0 22px 55px rgba(0,0,0,0.28); }
+    .cat-tile.tall { grid-row: span 2; }
+    .cat-tile-bg {
         position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 5rem;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.5s ease;
     }
-    .cat-0 .category-card-bg { background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%); }
-    .cat-1 .category-card-bg { background: linear-gradient(135deg, #7B2D26 0%, #C2420A 100%); }
-    .cat-2 .category-card-bg { background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%); }
-    .cat-3 .category-card-bg { background: linear-gradient(135deg, #3C1642 0%, #7B2869 100%); }
-    .cat-4 .category-card-bg { background: linear-gradient(135deg, #1A2980 0%, #26D0CE 100%); }
-    .cat-5 .category-card-bg { background: linear-gradient(135deg, #92400E 0%, #D97706 100%); }
-    .category-card-overlay {
+    .cat-tile:hover .cat-tile-bg { transform: scale(1.08); }
+    .cat-tile-ovl {
         position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(transparent 30%, rgba(0,0,0,0.6) 100%);
+        inset: 0;
+        background: linear-gradient(0deg, rgba(0,0,0,0.76) 0%, rgba(0,0,0,0.18) 55%, transparent 100%);
     }
-    .category-card-info {
+    .cat-tile-info {
         position: relative;
         z-index: 1;
-        padding: 1.25rem;
-    }
-    .category-card-info h3 {
-        color: white;
-        font-size: 1.1rem;
-        margin: 0 0 0.2rem;
-    }
-    .category-card-info span {
-        font-size: 0.8rem;
-        opacity: 0.8;
-    }
-
-    /* ===== FEATURED BOOKS ===== */
-    .books-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1.5rem;
-    }
-    .book-card {
-        background: white;
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        transition: var(--transition);
-        box-shadow: var(--shadow);
-        text-decoration: none;
-        color: inherit;
-        position: relative;
-        border: 1px solid rgba(0,0,0,0.04);
-    }
-    .book-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-xl);
-    }
-    .book-card-img-wrap {
-        position: relative;
-        overflow: hidden;
-    }
-    .book-card img {
+        padding: 1.2rem 1.4rem;
         width: 100%;
-        height: 200px;
-        object-fit: cover;
-        transition: transform 0.4s ease;
     }
-    .book-card:hover img {
-        transform: scale(1.05);
-    }
-    .book-card .book-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.35);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        opacity: 0;
-        transition: var(--transition);
-    }
-    .book-card:hover .book-overlay { opacity: 1; }
-    .book-overlay-btn {
-        width: 42px;
-        height: 42px;
-        background: white;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        transition: var(--transition);
-        box-shadow: var(--shadow);
-    }
-    .book-overlay-btn:hover { background: var(--accent); color: white; }
-    .book-card .book-info { padding: 1.25rem; }
-    .book-card h3 {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        font-weight: 600;
-        margin: 0 0 0.35rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--dark);
-    }
-    .book-card .book-author {
-        color: var(--gray);
-        font-size: 0.85rem;
-        margin-bottom: 0.5rem;
-    }
-    .book-card .book-rating {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        margin-bottom: 0.6rem;
-    }
-    .book-card .book-stars { color: #F59E0B; font-size: 0.85rem; letter-spacing: 1px; }
-    .book-card .book-rating-text { color: var(--gray); font-size: 0.8rem; }
-    .book-card .book-price {
-        color: var(--primary);
-        font-weight: 700;
-        font-size: 1.15rem;
-    }
-    .book-card .book-price-old {
-        color: var(--gray);
-        text-decoration: line-through;
-        font-size: 0.85rem;
-        font-weight: 400;
-        margin-left: 0.5rem;
-    }
-    .book-card .book-badge {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        background: var(--danger);
+    .cat-tag {
+        display: inline-block;
+        background: rgba(232,84,10,0.85);
         color: white;
-        padding: 0.25rem 0.65rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
+        font-size: 0.68rem;
         font-weight: 700;
-        z-index: 2;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.6rem;
+        border-radius: 6px;
+        margin-bottom: 0.45rem;
     }
+    .cat-tile-info h3 { color: white; font-size: 1.05rem; margin: 0 0 0.18rem; line-height: 1.25; }
+    .cat-tile.tall .cat-tile-info h3 { font-size: 1.45rem; }
+    .cat-tile-info span { font-size: 0.78rem; opacity: 0.82; }
+
+    /* ===== FEATURES STRIP ===== */
+    .features-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.1rem;
+        margin-bottom: 3.5rem;
+    }
+    .feat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.8rem 1.4rem 1.6rem;
+        text-align: center;
+        border: 1px solid #F5E5D5;
+        transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+        position: relative;
+        overflow: hidden;
+    }
+    .feat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #C2410C, #F97316);
+        opacity: 0;
+        transition: opacity 0.25s;
+    }
+    .feat-card:hover { transform: translateY(-5px); box-shadow: 0 18px 40px rgba(194,65,12,0.1); border-color: #F9C9A8; }
+    .feat-card:hover::before { opacity: 1; }
+    .feat-icon-wrap {
+        width: 62px; height: 62px;
+        background: linear-gradient(135deg, #FFF4EC, #FFE4CC);
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.15rem;
+        color: #C2410C;
+        transition: transform 0.25s;
+    }
+    .feat-card:hover .feat-icon-wrap { transform: scale(1.1) rotate(-4deg); }
+    .feat-card h4 { font-size: 0.94rem; margin: 0 0 0.42rem; color: #1C1917; font-weight: 700; }
+    .feat-card p  { color: #9CA3AF; font-size: 0.81rem; line-height: 1.65; margin: 0; }
 
     /* ===== PROMO BANNER ===== */
     .promo-banner {
-        background: linear-gradient(135deg, var(--dark) 0%, #2D2D2D 100%);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem 3rem;
-        margin: 3.5rem 0;
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: 3.5rem;
+        min-height: 230px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 2rem;
+    }
+    .promo-bg-img {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1400&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center 35%;
+        filter: brightness(0.28);
+    }
+    .promo-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(15,5,0,0.97) 0%, rgba(100,30,0,0.65) 60%, transparent 100%);
+    }
+    .promo-content {
+        position: relative;
+        z-index: 1;
+        padding: 3.2rem 4.5rem;
         color: white;
+        max-width: 560px;
     }
-    .promo-banner h2 {
-        color: white;
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+    .promo-tag {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        background: rgba(232,84,10,0.28);
+        border: 1px solid rgba(255,169,107,0.45);
+        color: #ffb07a;
+        padding: 0.28rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.76rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        margin-bottom: 0.85rem;
     }
-    .promo-banner p {
-        opacity: 0.75;
-        max-width: 400px;
-        line-height: 1.6;
+    .promo-content h2 { font-size: 1.75rem; color: white; margin: 0 0 0.6rem; }
+    .promo-content p  { color: rgba(255,255,255,0.72); margin: 0 0 1.5rem; line-height: 1.65; }
+    .promo-cta {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        background: linear-gradient(135deg, #E8540A, #FF7A33);
+        color: white; padding: 0.75rem 1.8rem;
+        border-radius: 12px; font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 8px 22px rgba(232,84,10,0.42);
+        transition: all 0.22s;
     }
-    .promo-banner .btn {
-        background: var(--accent);
-        flex-shrink: 0;
+    .promo-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(232,84,10,0.52); }
+
+    /* ===== BOOK CARDS ===== */
+    .books-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+        gap: 1.3rem;
+    }
+    .book-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid rgba(0,0,0,0.05);
+        position: relative;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    .book-card:hover { transform: translateY(-7px); box-shadow: 0 22px 44px rgba(0,0,0,0.13); }
+    .book-card-img-wrap { position: relative; overflow: hidden; }
+    .book-card img {
+        width: 100%; height: 220px;
+        object-fit: cover; display: block;
+        transition: transform 0.4s ease;
+    }
+    .book-card:hover img { transform: scale(1.07); }
+    .book-card .book-overlay {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.38);
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.6rem; opacity: 0; transition: opacity 0.24s;
+    }
+    .book-card:hover .book-overlay { opacity: 1; }
+    .book-overlay-btn {
+        width: 40px; height: 40px;
+        background: white; border-radius: 50%; border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; color: #1C1917;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+        transition: background 0.2s, color 0.2s;
+    }
+    .book-overlay-btn:hover { background: #E8540A; color: white; }
+    .book-info { padding: 1rem 1.05rem 1.15rem; }
+    .book-info h3 {
+        font-size: 0.91rem; font-weight: 700; margin: 0 0 0.28rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1C1917;
+    }
+    .book-author {
+        color: #9CA3AF; font-size: 0.8rem; margin-bottom: 0.55rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-rating-row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.6rem; }
+    .book-stars { color: #FBBF24; font-size: 0.77rem; letter-spacing: 1px; }
+    .book-rating-num { color: #9CA3AF; font-size: 0.77rem; }
+    .book-sold {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #FFF4E8;
+        border: 1px solid #FBD8B8;
+        color: #B45309;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.14rem 0.5rem;
+        border-radius: 999px;
+        margin-bottom: 0.55rem;
+    }
+    .book-reason {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #FFF3F0;
+        border: 1px solid #FBC6B2;
+        color: #C2410C;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.14rem 0.5rem;
+        border-radius: 999px;
+        margin-bottom: 0.45rem;
+    }
+    .book-price { color: #E8540A; font-weight: 800; font-size: 1.05rem; }
+    .book-badge {
+        position: absolute; top: 10px; left: 10px;
+        background: #EF4444; color: white;
+        font-size: 0.7rem; font-weight: 700;
+        padding: 0.22rem 0.6rem; border-radius: 6px; z-index: 2;
     }
 
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1080px) {
+        .hero { padding: 3rem 2.5rem; }
+        .hero h1 { font-size: 3rem; }
+        .hero-img-wrap { width: 360px; height: 300px; }
+        .categories-bento { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+        .cat-tile.tall { grid-row: span 1; }
+        .features-strip { grid-template-columns: repeat(2, 1fr); }
+        .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 860px) {
+        .hero { flex-direction: column; padding: 2.5rem 2rem; text-align: center; }
+        .hero-desc { margin-left: auto; margin-right: auto; }
+        .hero-cta-row { justify-content: center; }
+        .hero-right { width: 100%; }
+        .hero-img-wrap { width: 100%; height: 280px; }
+        .hero-img-badge { bottom: 12px; left: 12px; }
+    }
     @media (max-width: 768px) {
-        .hero { flex-direction: column; text-align: center; padding: 2rem 1.5rem; }
-        .hero-content p { margin-left: auto; margin-right: auto; }
-        .hero-actions { justify-content: center; }
-        .hero-image-container { width: 280px; height: 240px; font-size: 7rem; }
-        .hero-content h1 { font-size: 2.2rem; }
-        .promo-banner { flex-direction: column; text-align: center; padding: 2rem; }
-        .categories { grid-template-columns: repeat(2, 1fr); }
+        .hero h1 { font-size: 2.4rem; }
+        .categories-bento { grid-template-columns: 1fr 1fr; }
+        .promo-content { padding: 2rem 2.5rem; }
+        .promo-content h2 { font-size: 1.4rem; }
+    }
+    @media (max-width: 520px) {
+        .hero h1 { font-size: 2rem; }
+        .categories-bento { grid-template-columns: 1fr; }
+        .features-strip { grid-template-columns: 1fr 1fr; }
+        .stats-bar { grid-template-columns: 1fr 1fr; }
+        .promo-content { padding: 2rem 1.5rem; }
     }
 </style>
 
-<!-- Hero Section -->
+<!-- ===== HERO ===== -->
 <section class="hero">
-    <div class="hero-content">
-        <div class="hero-badge">✨ Bộ sưu tập mới</div>
+    <div class="hero-left">
+        <div class="hero-eyebrow">✦ Bộ sưu tập mới 2026</div>
         <h1>
-            Khám phá cuốn sách
-            <span class="highlight">tuyệt vời tiếp theo</span>
+            Khám phá cuốn sách<br>
+            <span class="h1-accent">tuyệt vời tiếp theo</span>
         </h1>
-        <p>Bộ sưu tập sách bán chạy, tác phẩm ẩn giấu và kinh điển văn học. Từ tiểu thuyết hấp dẫn đến phiêu lưu kỳ thú, tìm cuốn sách nói lên tâm hồn bạn.</p>
-        <div class="hero-actions">
-            <a href="/books/" class="btn">Khám phá ngay →</a>
-            <a href="/books/" class="btn btn-outline">Sách mới</a>
+        <p class="hero-desc">Bộ sưu tập hàng trăm đầu sách bán chạy, tác phẩm kinh điển và kỹ năng sống. Tìm cuốn sách nói lên tâm hồn bạn.</p>
+        <div class="hero-cta-row">
+            <a href="/books/" class="hero-btn-main">Khám phá bộ sưu tập →</a>
+            <a href="/books/" class="hero-btn-ghost">Sách mới nhất</a>
         </div>
     </div>
-    <div class="hero-image">
-        <div class="hero-image-container">📚</div>
-        <div class="hero-float-card">
-            <span class="count" id="heroBookCount">0+</span>
-            <span>Đầu sách</span>
+    <div class="hero-right">
+        <div class="hero-img-wrap">
+            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=900&auto=format&fit=crop&q=80" alt="Bộ sưu tập sách" loading="eager">
+        </div>
+        <div class="hero-img-badge">
+            <div class="hero-img-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <div>
+                <div class="hero-badge-val" id="heroBookCount">100+</div>
+                <div class="hero-badge-lbl">Đầu sách</div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Featured Categories -->
-<section style="margin-bottom: 3.5rem;">
+<!-- ===== STATS BAR ===== -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-val" id="statBooks">100+</div>
+        <div class="stat-lbl">Đầu sách</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-val" id="statAuthors">50+</div>
+        <div class="stat-lbl">Tác giả</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-val" id="statCats">10</div>
+        <div class="stat-lbl">Thể loại</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-val">Free</div>
+        <div class="stat-lbl">Ship &gt; 500K</div>
+    </div>
+</div>
+
+<!-- ===== CATEGORIES ===== -->
+<section style="margin-bottom:3.5rem;">
     <div class="section-header">
         <div>
-            <h2>Duyệt theo danh mục</h2>
-            <p>Khám phá bộ sưu tập được phân loại cẩn thận</p>
+            <h2>Duyệt theo thể loại</h2>
+            <p class="sh-sub">Tìm sách theo đúng sở thích của bạn</p>
         </div>
         <a href="/books/">Xem tất cả →</a>
     </div>
-    <div class="categories">
-        <a href="/books/" class="category-card cat-0">
-            <div class="category-card-bg">📖</div>
-            <div class="category-card-overlay"></div>
-            <div class="category-card-info">
-                <h3>Văn học</h3>
-                <span>Tiểu thuyết & Truyện ngắn</span>
+    <div class="categories-bento">
+        <a href="/books/?category=van-hoc-viet-nam" class="cat-tile tall">
+            <div class="cat-tile-bg" style="background-image:url('https://images.unsplash.com/photo-1512820790803-83ca734da794?w=700&auto=format&fit=crop&q=80');"></div>
+            <div class="cat-tile-ovl"></div>
+            <div class="cat-tile-info">
+                <div class="cat-tag">Phổ biến</div>
+                <h3>Văn học Việt Nam</h3>
+                <span>Tiểu thuyết, truyện ngắn, thơ ca</span>
             </div>
         </a>
-        <a href="/books/" class="category-card cat-1">
-            <div class="category-card-bg">💼</div>
-            <div class="category-card-overlay"></div>
-            <div class="category-card-info">
-                <h3>Kinh tế</h3>
-                <span>Kinh doanh & Tài chính</span>
+        <a href="/books/?category=cong-nghe-lap-trinh" class="cat-tile">
+            <div class="cat-tile-bg" style="background-image:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=500&auto=format&fit=crop&q=80');"></div>
+            <div class="cat-tile-ovl"></div>
+            <div class="cat-tile-info">
+                <h3>Công nghệ & Lập trình</h3>
+                <span>IT, Software, Dev</span>
             </div>
         </a>
-        <a href="/books/" class="category-card cat-2">
-            <div class="category-card-bg">🔬</div>
-            <div class="category-card-overlay"></div>
-            <div class="category-card-info">
+        <a href="/books/?category=kinh-te-kinh-doanh" class="cat-tile">
+            <div class="cat-tile-bg" style="background-image:url('https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=500&auto=format&fit=crop&q=80');"></div>
+            <div class="cat-tile-ovl"></div>
+            <div class="cat-tile-info">
+                <h3>Kinh tế & Kinh doanh</h3>
+                <span>Finance, Business, Startup</span>
+            </div>
+        </a>
+        <a href="/books/?category=tam-ly-ky-nang-song" class="cat-tile">
+            <div class="cat-tile-bg" style="background-image:url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80');"></div>
+            <div class="cat-tile-ovl"></div>
+            <div class="cat-tile-info">
+                <h3>Tâm lý & Kỹ năng sống</h3>
+                <span>Self-help, Phát triển bản thân</span>
+            </div>
+        </a>
+        <a href="/books/?category=khoa-hoc" class="cat-tile">
+            <div class="cat-tile-bg" style="background-image:url('https://images.unsplash.com/photo-1532094349884-543559886ef8?w=500&auto=format&fit=crop&q=80');"></div>
+            <div class="cat-tile-ovl"></div>
+            <div class="cat-tile-info">
                 <h3>Khoa học</h3>
-                <span>Khoa học & Công nghệ</span>
-            </div>
-        </a>
-        <a href="/books/" class="category-card cat-3">
-            <div class="category-card-bg">🎨</div>
-            <div class="category-card-overlay"></div>
-            <div class="category-card-info">
-                <h3>Nghệ thuật</h3>
-                <span>Nghệ thuật & Thiết kế</span>
-            </div>
-        </a>
-        <a href="/books/" class="category-card cat-5">
-            <div class="category-card-bg">👶</div>
-            <div class="category-card-overlay"></div>
-            <div class="category-card-info">
-                <h3>Thiếu nhi</h3>
-                <span>Sách cho bé</span>
+                <span>Vũ trụ, Toán học, Vật lý</span>
             </div>
         </a>
     </div>
 </section>
 
-<!-- Promo Banner -->
+<!-- ===== FEATURES ===== -->
+<div class="features-strip">
+    <div class="feat-card">
+        <div class="feat-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+        </div>
+        <h4>Miễn phí giao hàng</h4>
+        <p>Đơn từ 500K được ship toàn quốc nhanh chóng, miễn phí</p>
+    </div>
+    <div class="feat-card">
+        <div class="feat-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+        </div>
+        <h4>Đổi trả dễ dàng</h4>
+        <p>7 ngày đổi trả miễn phí nếu sách bị lỗi hoặc sai đơn</p>
+    </div>
+    <div class="feat-card">
+        <div class="feat-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+        </div>
+        <h4>Đóng gói cẩn thận</h4>
+        <p>Bảo vệ sách an toàn, tránh xây xát trong suốt hành trình</p>
+    </div>
+    <div class="feat-card">
+        <div class="feat-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </div>
+        <h4>Hỗ trợ 7/7</h4>
+        <p>Đội ngũ tư vấn viên trực tuyến sẵn sàng mỗi ngày trong tuần</p>
+    </div>
+</div>
+
+<!-- ===== PROMO BANNER ===== -->
 <section class="promo-banner">
-    <div>
-        <h2>📦 Miễn phí giao hàng</h2>
-        <p>Đơn hàng trên 500.000đ được miễn phí vận chuyển toàn quốc. Áp dụng cho tất cả sách!</p>
+    <div class="promo-bg-img"></div>
+    <div class="promo-overlay"></div>
+    <div class="promo-content">
+        <div class="promo-tag">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Ưu đãi đặc biệt
+        </div>
+        <h2>Miễn phí vận chuyển cho đơn từ 500.000đ</h2>
+        <p>Áp dụng toàn quốc, không giới hạn số lượng. Mua sắm càng nhiều, tiết kiệm càng lớn.</p>
+        <a href="/books/" class="promo-cta">
+            Mua ngay
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
     </div>
-    <a href="/books/" class="btn">Mua sắm ngay →</a>
 </section>
 
-<!-- Featured Books -->
-<section>
+<!-- ===== FEATURED BOOKS ===== -->
+<section style="margin-bottom:3rem;">
     <div class="section-header">
         <div>
-            <h2>Sách nổi bật</h2>
-            <p>Những cuốn sách được yêu thích nhất tuần này</p>
+            <h2>Sách gợi ý có thể bạn cũng thích</h2>
+            <p class="sh-sub" id="recommendedSubtext">Đang phân tích sở thích đọc của bạn...</p>
         </div>
-        <a href="/books/">Xem tất cả →</a>
+        <a href="/books/" id="recommendedLink">Khám phá thêm →</a>
     </div>
-    <div class="books-row" id="recentBooks">
-        <p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--gray);">Đang tải...</p>
+    <div class="books-row" id="recommendedBooks">
+        <p style="grid-column:1/-1;text-align:center;padding:3rem;color:#9CA3AF;">Đang tải...</p>
     </div>
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Render star ratings dynamically
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function renderStars(rating) {
-    var fullStars = Math.floor(rating);
-    var hasHalf = rating - fullStars >= 0.5;
-    var stars = '';
+    var full = Math.floor(rating);
+    var s = '';
     for (var i = 1; i <= 5; i++) {
-        if (i <= fullStars) stars += '★';
-        else if (i === fullStars + 1 && hasHalf) stars += '★';
-        else stars += '☆';
+        s += (i <= full) ? '★' : '☆';
     }
-    return stars;
+    return s;
+}
+
+function renderBookCards(container, books) {
+    if (!container) return;
+    if (!books.length) {
+        container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:3rem;color:#9CA3AF;">Chưa có sách phù hợp để gợi ý.</p>';
+        return;
+    }
+
+    var html = '';
+    for (var i = 0; i < books.length; i++) {
+        var book = books[i];
+        var authorName = book.author_name || 'Chưa rõ tác giả';
+        var rating = parseFloat(book.average_rating) || 0;
+        var seed = encodeURIComponent(book.book_id || i);
+        var imgSrc = book.cover_image_url || ('https://picsum.photos/seed/' + seed + '/400/600');
+        var fallback = 'https://picsum.photos/seed/' + seed + '/400/600';
+        var reason = book._recommend_reason ? '<div class="book-reason">AI gợi ý: ' + escapeHtml(book._recommend_reason) + '</div>' : '';
+
+        html += '<a href="/books/' + book.book_id + '/" class="book-card">' +
+            '<div class="book-card-img-wrap">' +
+            '<img src="' + imgSrc + '" onerror="this.onerror=null;this.src=\'' + fallback + '\'" alt="' + escapeHtml(book.title) + '" loading="lazy">' +
+            '<div class="book-overlay">' +
+            '<button class="book-overlay-btn" title="Xem chi tiết" onclick="event.preventDefault();event.stopPropagation();window.location.href=\'/books/' + book.book_id + '/\'">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+            '</button>' +
+            '<button class="book-overlay-btn" title="Thêm vào giỏ" onclick="event.preventDefault();event.stopPropagation();quickAddToCart(\'' + book.book_id + '\',this)">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' +
+            '</button>' +
+            '</div></div>' +
+            '<div class="book-info">' +
+            '<h3>' + escapeHtml(book.title) + '</h3>' +
+            '<div class="book-author">' + escapeHtml(authorName) + '</div>' +
+            '<div class="book-rating-row">' +
+            '<span class="book-stars">' + renderStars(rating) + '</span>' +
+            '<span class="book-rating-num">' + (rating > 0 ? rating.toFixed(1) : '') + '</span>' +
+            '</div>' +
+            reason +
+            '<div class="book-sold">Đã bán: ' + parseInt(book.total_sold || 0, 10).toLocaleString('vi-VN') + '</div>' +
+            '<div class="book-price">' + Math.round(book.price).toLocaleString('vi-VN') + 'đ</div>' +
+            '</div></a>';
+    }
+
+    container.innerHTML = html;
+}
+
+function loadRecommendedBooks(books) {
+    var container = document.getElementById('recommendedBooks');
+    var subtitle = document.getElementById('recommendedSubtext');
+    var customerId = localStorage.getItem('customer_id');
+
+    if (!container) return;
+    if (!books.length) {
+        container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:3rem;color:#9CA3AF;">Chưa có sách nào.</p>';
+        if (subtitle) subtitle.textContent = 'Kho dữ liệu sách đang được cập nhật.';
+        return;
+    }
+
+    var fallbackBooks = books.slice().sort(function(a, b) {
+        return (parseInt(b.total_sold || 0, 10) - parseInt(a.total_sold || 0, 10));
+    }).slice(0, 8);
+
+    if (!customerId) {
+        if (subtitle) subtitle.textContent = 'Đăng nhập để nhận gợi ý cá nhân hóa từ AI.';
+        renderBookCards(container, fallbackBooks);
+        return;
+    }
+
+    fetch('/api/recommendations/' + customerId + '/?limit=8')
+        .then(function(r) {
+            if (!r.ok) return [];
+            return r.json();
+        })
+        .then(function(recommendations) {
+            var recList = Array.isArray(recommendations) ? recommendations : [];
+            var bookMap = {};
+
+            for (var i = 0; i < books.length; i++) {
+                var key = String(books[i].book_id || '');
+                if (key) bookMap[key] = books[i];
+            }
+
+            var merged = [];
+            for (var j = 0; j < recList.length; j++) {
+                var rec = recList[j] || {};
+                var picked = bookMap[String(rec.book_id || '')];
+                if (picked) {
+                    var clone = Object.assign({}, picked);
+                    clone._recommend_reason = rec.reason || 'Dựa trên hành vi mua và xem của bạn';
+                    merged.push(clone);
+                }
+            }
+
+            if (merged.length) {
+                if (subtitle) subtitle.textContent = 'Danh sách được AI đề xuất theo hành vi đọc, xem và mua sách của bạn.';
+                renderBookCards(container, merged);
+                return;
+            }
+
+            if (subtitle) subtitle.textContent = 'Chưa đủ dữ liệu cá nhân hóa, hiển thị sách phổ biến để bạn tham khảo.';
+            renderBookCards(container, fallbackBooks);
+        })
+        .catch(function() {
+            if (subtitle) subtitle.textContent = 'Không thể tải gợi ý AI lúc này, tạm hiển thị sách phổ biến.';
+            renderBookCards(container, fallbackBooks);
+        });
 }
 
 Promise.all([
-    fetch('/api/books/').then(function(r) { return r.json(); }).catch(function() { return []; }),
-    fetch('/api/categories/').then(function(r) { return r.json(); }).catch(function() { return []; }),
-    fetch('/api/authors/').then(function(r) { return r.json(); }).catch(function() { return []; })
+    fetch('/api/books/').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/api/categories/').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/api/authors/').then(function(r){ return r.json(); }).catch(function(){ return []; })
 ]).then(function(results) {
-    var books = results[0];
-    var categories = results[1];
-    var authors = results[2];
-    
-    // Update hero book count
-    document.getElementById('heroBookCount').textContent = books.length + '+';
-    
-    if (books.length > 0) {
-        var recent = books.slice(0, 8);
-        var html = '';
-        for (var i = 0; i < recent.length; i++) {
-            var book = recent[i];
-            var authorName = book.author_name || 'Chưa rõ tác giả';
-            var rating = parseFloat(book.average_rating) || 0;
-            var reviews = book.total_reviews || 0;
-            var imgSrc = book.cover_image_url || 'https://picsum.photos/seed/' + book.book_id + '/400/300';
-            
-            html += '<a href="/books/' + book.book_id + '/" class="book-card">' +
-                '<div class="book-card-img-wrap">' +
-                '<img src="' + imgSrc + '" ' +
-                'onerror="this.src=\'https://picsum.photos/seed/' + book.book_id + '/400/300\'" alt="' + book.title + '">' +
-                '<div class="book-overlay">' +
-                '<button class="book-overlay-btn" onclick="event.preventDefault(); event.stopPropagation(); window.location.href=\'/books/' + book.book_id + '/\'">👁</button>' +
-                '<button class="book-overlay-btn" onclick="event.preventDefault(); event.stopPropagation(); quickAddToCart(\'' + book.book_id + '\', this)">🛒</button>' +
-                '</div>' +
-                '</div>' +
-                '<div class="book-info">' +
-                '<h3>' + book.title + '</h3>' +
-                '<div class="book-author">' + authorName + '</div>' +
-                '<div class="book-rating">' +
-                '<span class="book-stars">' + renderStars(rating) + '</span>' +
-                '<span class="book-rating-text">' + rating.toFixed(1) + '</span>' +
-                '</div>' +
-                '<div class="book-price">' + Math.round(book.price).toLocaleString() + 'đ</div>' +
-                '</div></a>';
-        }
-        document.getElementById('recentBooks').innerHTML = html;
-    } else {
-        document.getElementById('recentBooks').innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--gray);">Chưa có sách nào.</p>';
-    }
+    var books = Array.isArray(results[0]) ? results[0] : [];
+    var categories = Array.isArray(results[1]) ? results[1] : [];
+    var authors = Array.isArray(results[2]) ? results[2] : [];
+
+    // Stats
+    var bc = document.getElementById('heroBookCount');
+    var sb = document.getElementById('statBooks');
+    var sa = document.getElementById('statAuthors');
+    var sc = document.getElementById('statCats');
+    if (bc) bc.textContent = books.length + '+';
+    if (sb) sb.textContent = books.length + '+';
+    if (sa) sa.textContent = authors.length + '+';
+    if (sc) sc.textContent = categories.length;
+
+    loadRecommendedBooks(books);
 });
 
 function quickAddToCart(bookId, btn) {
     var customerId = localStorage.getItem('customer_id');
     if (!customerId) {
-        alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
+        if (typeof showToast === 'function') showToast('Vui lòng đăng nhập để thêm vào giỏ hàng');
+        else alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
         window.location.href = '/login/';
         return;
     }
-    
+
+    /* ===== SECTION HEADER (kept in block below for old CSS removal) ===== */
     fetch('/api/cart/' + customerId + '/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({book_id: bookId, quantity: 1})
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r){ return r.json(); })
     .then(function(data) {
-        if (data.error) {
-            showToast(data.error);
-        } else {
-            showToast('Đã thêm vào giỏ hàng!');
+        if (data.error) { if (typeof showToast === 'function') showToast(data.error); }
+        else {
+            if (typeof showToast === 'function') showToast('Đã thêm vào giỏ hàng!');
             if (typeof updateCartBadge === 'function') updateCartBadge();
         }
     })
-    .catch(function() { showToast('Lỗi khi thêm vào giỏ'); });
+    .catch(function(){ if (typeof showToast === 'function') showToast('Lỗi khi thêm vào giỏ'); });
 }
 </script>
 {% endblock %}

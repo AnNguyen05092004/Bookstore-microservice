@@ -222,6 +222,15 @@
     .btn-submit-review:hover { background: #D97706; }
     .login-prompt { text-align: center; padding: 1rem; color: var(--gray); }
     .login-prompt a { color: var(--primary); font-weight: 600; }
+    .purchase-required {
+        text-align: center;
+        padding: 1rem;
+        color: #92400E;
+        background: #FFFBEB;
+        border: 1px solid #FDE68A;
+        border-radius: var(--radius);
+    }
+    .purchase-required a { color: var(--primary); font-weight: 700; }
 
     @media (max-width: 768px) {
         .book-detail-container { gap: 2rem; }
@@ -293,6 +302,10 @@
         <div id="loginPrompt" class="login-prompt" style="display: none;">
             <p>Vui lòng <a href="/login/">đăng nhập</a> để đánh giá sản phẩm</p>
         </div>
+        <div id="purchasePrompt" class="purchase-required" style="display: none;">
+            Bạn chỉ có thể đánh giá những sách đã mua. Vui lòng mua sách trước, sau đó quay lại đánh giá tại
+            <a href="/orders/">Đơn hàng của tôi</a>.
+        </div>
         <form id="reviewForm" style="display: none;">
             <div class="form-group">
                 <label>Đánh giá sao:</label>
@@ -345,6 +358,7 @@
 <script>
 const bookId = '{{ book.book_id }}';
 const customerId = localStorage.getItem('customer_id');
+let canReviewThisBook = false;
 
 // Render star ratings from data-rating attribute
 function renderStars(rating) {
@@ -366,15 +380,52 @@ document.addEventListener('DOMContentLoaded', function() {
         const rating = parseFloat(el.dataset.rating) || 0;
         el.textContent = renderStars(rating);
     });
+
+    if (customerId && bookId && typeof trackBehaviour === 'function') {
+        const viewKey = 'tracked_view_' + bookId;
+        if (!sessionStorage.getItem(viewKey)) {
+            trackBehaviour('view', {
+                book_id: bookId,
+                metadata: {
+                    source: 'book_detail_page',
+                    path: window.location.pathname
+                }
+            });
+            sessionStorage.setItem(viewKey, '1');
+        }
+    }
     
     if (customerId) {
-        document.getElementById('reviewForm').style.display = 'block';
-        document.getElementById('loginPrompt').style.display = 'none';
+        checkReviewEligibility();
     } else {
         document.getElementById('reviewForm').style.display = 'none';
         document.getElementById('loginPrompt').style.display = 'block';
+        document.getElementById('purchasePrompt').style.display = 'none';
     }
 });
+
+function checkReviewEligibility() {
+    fetch(`/api/orders/${customerId}/`)
+        .then(r => r.ok ? r.json() : [])
+        .then(orders => {
+            const validStatuses = new Set(['delivered', 'completed']);
+            canReviewThisBook = (orders || []).some(order => {
+                const st = String(order.status || '').toLowerCase();
+                if (!validStatuses.has(st)) return false;
+                return (order.items || []).some(item => String(item.book_id) === String(bookId));
+            });
+
+            document.getElementById('loginPrompt').style.display = 'none';
+            document.getElementById('reviewForm').style.display = canReviewThisBook ? 'block' : 'none';
+            document.getElementById('purchasePrompt').style.display = canReviewThisBook ? 'none' : 'block';
+        })
+        .catch(() => {
+            canReviewThisBook = false;
+            document.getElementById('reviewForm').style.display = 'none';
+            document.getElementById('loginPrompt').style.display = 'none';
+            document.getElementById('purchasePrompt').style.display = 'block';
+        });
+}
 
 function addToCart(bookId) {
     if (!customerId) {
@@ -403,6 +454,11 @@ function addToCart(bookId) {
 // Submit review
 document.getElementById('reviewForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (!canReviewThisBook) {
+        showToast('Bạn chỉ có thể đánh giá sách đã mua');
+        return;
+    }
     
     const rating = document.querySelector('input[name="rating"]:checked');
     const title = document.getElementById('reviewTitle').value;

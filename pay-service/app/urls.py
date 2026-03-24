@@ -8,6 +8,7 @@ from .views import (
 )
 
 urlpatterns = [
+    # Payment CRUD and processing APIs
     path("payments/", PaymentListCreate.as_view(), name="payment-list-create"),
     path("payments/<uuid:payment_id>/", PaymentDetail.as_view(), name="payment-detail"),
     path(
@@ -15,6 +16,8 @@ urlpatterns = [
         ProcessPayment.as_view(),
         name="process-payment",
     ),
+    # Refund API
     path("refunds/", RefundPayment.as_view(), name="refund-payment"),
+    # Service health endpoint
     path("health/", HealthCheck.as_view(), name="health-check"),
 ]

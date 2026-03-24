@@ -13,8 +13,10 @@ from .views import (
 )
 
 urlpatterns = [
+    # Cart lifecycle APIs
     path("carts/", CartCreate.as_view(), name="cart-create"),
     path("carts/<uuid:customer_id>/", CartDetail.as_view(), name="cart-detail"),
+    # Cart item operations
     path(
         "carts/<uuid:customer_id>/items/", AddCartItem.as_view(), name="add-cart-item"
     ),
@@ -24,5 +26,6 @@ urlpatterns = [
         name="update-cart-item",
     ),
     path("carts/<uuid:customer_id>/clear/", ClearCart.as_view(), name="clear-cart"),
+    # Service health endpoint
     path("health/", HealthCheck.as_view(), name="health-check"),
 ]

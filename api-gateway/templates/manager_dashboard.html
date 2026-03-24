@@ -1,0 +1,245 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Manager Dashboard - BookStore{% endblock %}
+{% block admin_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block admin_title %}Bảng điều khiển KPI{% endblock %}
+{% block admin_subtitle %}Doanh thu chỉ tính từ payment thành công và biểu đồ theo dữ liệu aggregate{% endblock %}
+
+{% block content %}
+<style>
+.kpi { display:grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.85rem; margin-bottom: 1rem; }
+.kpi .card { border-radius: 14px; }
+.kpi .card h3 { margin: 0; font-size: 1.55rem; color: #8f2f10; }
+.kpi .card p { margin: 0.32rem 0 0; color: #61708b; font-weight: 600; font-size: 0.87rem; }
+.kpi .card.warn h3 { color: #a56b00; }
+.kpi .card.danger h3 { color: #bf1b3d; }
+.kpi-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.55rem; }
+.kpi-icon { width:36px; height:36px; border-radius:11px; display:inline-flex; align-items:center; justify-content:center; font-size:1rem; background:#ffe7d6; color:#ff5a00; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.panel { background: #fff; border: 1px solid #f0d5c0; border-radius: 16px; box-shadow: 0 14px 30px rgba(37,35,33,0.06); padding: 0.92rem; }
+.panel h3 { margin: 0 0 0.7rem; color: #8b2f0f; }
+.panel canvas { width: 100%; height: 280px; }
+.table-panel { margin-top: 1rem; }
+.muted { color: #61708b; }
+@media (max-width: 1180px) { .kpi { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 780px) { .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2 { grid-template-columns: 1fr; } }
+</style>
+
+<div id="managerContent" style="display:none;">
+    <div class="kpi">
+        <div class="card reveal">
+            <div class="kpi-head"><span class="muted">Tổng doanh thu</span><span class="kpi-icon"><i class="bi bi-cash-stack"></i></span></div>
+            <h3 id="kpiRevenue">-</h3><p>Payment thành công</p>
+        </div>
+        <div class="card reveal">
+            <div class="kpi-head"><span class="muted">Lợi nhuận</span><span class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></span></div>
+            <h3 id="kpiProfit">-</h3><p>Ước tính toàn hệ thống</p>
+        </div>
+        <div class="card reveal">
+            <div class="kpi-head"><span class="muted">Tổng đơn hàng</span><span class="kpi-icon"><i class="bi bi-cart-check"></i></span></div>
+            <h3 id="kpiOrders">-</h3><p>Đã tạo trong hệ thống</p>
+        </div>
+        <div class="card warn reveal">
+            <div class="kpi-head"><span class="muted">Đơn tồn đọng</span><span class="kpi-icon"><i class="bi bi-hourglass-split"></i></span></div>
+            <h3 id="kpiPending">-</h3><p>Cần xử lý sớm</p>
+        </div>
+        <div class="card reveal">
+            <div class="kpi-head"><span class="muted">Đơn hoàn thành</span><span class="kpi-icon"><i class="bi bi-check2-circle"></i></span></div>
+            <h3 id="kpiCompleted">-</h3><p>Đã giao thành công</p>
+        </div>
+        <div class="card danger reveal">
+            <div class="kpi-head"><span class="muted">Đơn hủy</span><span class="kpi-icon"><i class="bi bi-x-circle"></i></span></div>
+            <h3 id="kpiCancelled">-</h3><p>Tỷ lệ rủi ro</p>
+        </div>
+    </div>
+
+    <div class="grid2">
+        <section class="panel reveal">
+            <h3>Top 5 loại sách bán nhiều nhất</h3>
+            <canvas id="chartTopCategory"></canvas>
+        </section>
+        <section class="panel reveal">
+            <h3>Top tác giả bán chạy nhất</h3>
+            <canvas id="chartTopAuthors"></canvas>
+        </section>
+        <section class="panel reveal">
+            <h3>Top sách bán chạy</h3>
+            <canvas id="chartTopBooks"></canvas>
+        </section>
+        <section class="panel reveal">
+            <h3>Hành vi người dùng theo thời gian (view/search/add/buy)</h3>
+            <canvas id="chartBehaviour"></canvas>
+        </section>
+    </div>
+
+    <section class="panel table-panel reveal">
+        <h3>Giao dịch gần đây</h3>
+        <table id="managerTxTable">
+            <thead>
+                <tr>
+                    <th>Mã thanh toán</th>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Số tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                </tr>
+            </thead>
+            <tbody id="recentTxRows">
+                <tr><td colspan="6" class="muted">Đang tải...</td></tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<div id="loginRequired" style="display:none; text-align:center; padding:2rem;" class="card">
+    <h2>🔒 Cần đăng nhập Manager</h2>
+    <p class="muted">Chỉ role manager/admin được truy cập khu vực này.</p>
+    <a href="/manager/login/">Đi tới Manager Login</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var managerCharts = [];
+
+function fmtMoney(v) {
+    return Math.round(Number(v || 0)).toLocaleString('vi-VN') + 'đ';
+}
+
+function resetCharts() {
+    managerCharts.forEach(function (c) { try { c.destroy(); } catch (e) {} });
+    managerCharts = [];
+}
+
+function buildCharts(data) {
+    var charts = data.charts || {};
+    resetCharts();
+
+    var commonPlugins = {
+        legend: { labels: { color: '#8b2f0f', usePointStyle: true, boxWidth: 8, font: { weight: '700' } } }
+    };
+    var axisColor = '#f3bf97';
+    var tickColor = '#8b2f0f';
+
+    var topCat = charts.top_categories || [];
+    managerCharts.push(new Chart(document.getElementById('chartTopCategory'), {
+        type: 'pie',
+        data: {
+            labels: topCat.map(function (x) { return x.category_name; }),
+            datasets: [{ data: topCat.map(function (x) { return x.quantity; }), backgroundColor: ['#ff5a00', '#f97316', '#fb923c', '#fdba74', '#fed7aa'] }]
+        },
+        options: { plugins: commonPlugins }
+    }));
+
+    var topAuthors = charts.top_authors || [];
+    managerCharts.push(new Chart(document.getElementById('chartTopAuthors'), {
+        type: 'bar',
+        data: {
+            labels: topAuthors.map(function (x) { return x.author_name; }),
+            datasets: [{ label: 'Số lượng', data: topAuthors.map(function (x) { return x.quantity; }), backgroundColor: '#ff7a33', borderRadius: 8 }]
+        },
+        options: {
+            plugins: commonPlugins,
+            scales: {
+                x: { ticks: { color: tickColor }, grid: { color: axisColor } },
+                y: { ticks: { color: tickColor }, grid: { color: axisColor } }
+            }
+        }
+    }));
+
+    var topBooks = charts.top_books || [];
+    managerCharts.push(new Chart(document.getElementById('chartTopBooks'), {
+        type: 'bar',
+        data: {
+            labels: topBooks.slice(0, 10).map(function (x) { return x.title; }),
+            datasets: [{ label: 'Số lượng', data: topBooks.slice(0, 10).map(function (x) { return x.quantity; }), backgroundColor: '#ff944d', borderRadius: 7 }]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: commonPlugins,
+            scales: {
+                x: { ticks: { color: tickColor }, grid: { color: axisColor } },
+                y: { ticks: { color: tickColor }, grid: { color: axisColor } }
+            }
+        }
+    }));
+
+    var beh = charts.behaviour_timeline || [];
+    managerCharts.push(new Chart(document.getElementById('chartBehaviour'), {
+        type: 'line',
+        data: {
+            labels: beh.map(function (x) { return x.date; }),
+            datasets: [
+                { label: 'view', data: beh.map(function (x) { return x.view; }), borderColor: '#ff5a00', backgroundColor: '#ff5a00', tension: 0.25 },
+                { label: 'search', data: beh.map(function (x) { return x.search; }), borderColor: '#ff8b4d', backgroundColor: '#ff8b4d', tension: 0.25 },
+                { label: 'add', data: beh.map(function (x) { return x.add; }), borderColor: '#ffa76f', backgroundColor: '#ffa76f', tension: 0.25 },
+                { label: 'buy', data: beh.map(function (x) { return x.buy; }), borderColor: '#8f2f10', backgroundColor: '#8f2f10', tension: 0.25 }
+            ]
+        },
+        options: {
+            plugins: commonPlugins,
+            scales: {
+                x: { ticks: { color: tickColor }, grid: { color: axisColor } },
+                y: { ticks: { color: tickColor }, grid: { color: axisColor } }
+            }
+        }
+    }));
+}
+
+(function () {
+    fetch('/api/auth/staff/session/')
+        .then(function (r) { return r.json(); })
+        .then(function (s) {
+            if (!s || !s.authenticated) {
+                document.getElementById('loginRequired').style.display = 'block';
+                return;
+            }
+            localStorage.setItem('staff_id', s.staff_id || '');
+            localStorage.setItem('staff_name', s.name || 'Manager');
+            localStorage.setItem('staff_role', s.role || 'manager');
+            if (s.role !== 'manager' && s.role !== 'admin') {
+                window.location.href = '/staff/dashboard/';
+                return;
+            }
+
+            document.getElementById('managerContent').style.display = 'block';
+            return fetch('/api/dashboard/manager/').then(function (r) { return r.json(); });
+        })
+        .then(function (data) {
+            if (!data) {
+                return;
+            }
+            var k = data.kpi || {};
+            document.getElementById('kpiRevenue').textContent = fmtMoney(k.total_revenue);
+            document.getElementById('kpiProfit').textContent = fmtMoney(k.profit);
+            document.getElementById('kpiOrders').textContent = k.total_orders || 0;
+            document.getElementById('kpiPending').textContent = k.pending_orders || 0;
+            document.getElementById('kpiCompleted').textContent = k.completed_orders || 0;
+            document.getElementById('kpiCancelled').textContent = k.cancelled_orders || 0;
+
+            buildCharts(data);
+            staggerReveal('#managerContent .reveal', 85);
+
+            var tx = Array.isArray(data.recent_transactions) ? data.recent_transactions : [];
+            document.getElementById('recentTxRows').innerHTML = tx.length ? tx.map(function (t) {
+                return '<tr>' +
+                    '<td>' + ((t.payment_id || '-').toString().slice(0, 8)) + '</td>' +
+                    '<td>#' + (t.order_number || (t.order_id || '-').toString().slice(0, 8)) + '</td>' +
+                    '<td>' + ((t.customer_id || '-').toString().slice(0, 8)) + '</td>' +
+                    '<td>' + fmtMoney(t.amount) + '</td>' +
+                    '<td>' + (t.status || '-') + '</td>' +
+                    '<td>' + (t.paid_at || '-') + '</td>' +
+                '</tr>';
+            }).join('') : '<tr><td colspan="6" class="muted">Chưa có giao dịch thành công</td></tr>';
+            enableSortableTable('managerTxTable');
+            enablePagination('managerTxTable');
+        })
+        .catch(function () {
+            document.getElementById('recentTxRows').innerHTML = '<tr><td colspan="6" class="muted">Không tải được dữ liệu dashboard</td></tr>';
+        });
+})();
+</script>
+{% endblock %}

@@ -49,58 +49,63 @@
 /* ===== AUTHORS SECTION ===== */
 .authors-section {
     margin-bottom: 2.5rem;
+    background: linear-gradient(135deg, #fff8f2 0%, #fff4e8 100%);
+    border: 1px solid #f8dfc8;
+    border-radius: 18px;
+    padding: 1.2rem 1.2rem 1.35rem;
 }
 .authors-section h2 {
     font-size: 1.35rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.05rem;
     color: var(--dark);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
 }
 .authors-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.8rem;
 }
 .author-card {
-    background: white;
+    background: #fffefc;
     border-radius: var(--radius-lg);
-    padding: 1.25rem;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(0,0,0,0.04);
+    padding: 0.95rem;
+    box-shadow: none;
+    border: 1px solid #f4d6ba;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.85rem;
     transition: var(--transition);
-    cursor: default;
+    cursor: pointer;
 }
 .author-card:hover {
-    box-shadow: var(--shadow);
-    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(194, 66, 10, 0.12);
+    transform: translateY(-2px);
+    border-color: #e9b78f;
 }
 .author-avatar {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(194, 66, 10, 0.2);
 }
 .author-avatar-fallback {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1.25rem;
+    font-weight: 600;
+    font-size: 1.1rem;
     color: white;
     flex-shrink: 0;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(194, 66, 10, 0.2);
 }
 .author-info h4 {
     font-size: 0.92rem;
@@ -112,13 +117,14 @@
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    font-size: 0.75rem;
-    color: white;
-    background: var(--primary);
-    padding: 0.15rem 0.55rem;
+    font-size: 0.74rem;
+    color: #b45309;
+    background: #ffedd5;
+    border: 1px solid #f6c79a;
+    padding: 0.12rem 0.5rem;
     border-radius: var(--radius-full);
     font-weight: 500;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
 }
 .author-info .author-bio {
     font-size: 0.78rem;
@@ -127,7 +133,113 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    line-height: 1.4;
+    line-height: 1.35;
+}
+.author-open-hint {
+    margin-left: auto;
+    color: #d97706;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff3e3;
+    border: 1px solid #f5d0ab;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.author-open-hint svg {
+    width: 12px;
+    height: 12px;
+}
+
+.section-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    color: #c2410c;
+}
+.section-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.author-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(17, 24, 39, 0.42);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.author-modal.open {
+    display: flex;
+}
+.author-modal-card {
+    width: min(560px, 94vw);
+    background: #fffdf9;
+    border: 1px solid #f4d6ba;
+    border-radius: 16px;
+    box-shadow: 0 22px 40px rgba(0, 0, 0, 0.2);
+    padding: 1rem 1rem 1.1rem;
+}
+.author-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+}
+.author-modal-title {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #9a3412;
+}
+.author-modal-close {
+    border: 1px solid #f3d2b2;
+    background: #fff5e8;
+    color: #9a3412;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.author-modal-body {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 0.9rem;
+}
+.author-modal-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.author-modal-body h4 {
+    margin: 0 0 0.2rem;
+    color: #7c2d12;
+}
+.author-modal-nationality {
+    display: inline-flex;
+    font-size: 0.78rem;
+    color: #9a3412;
+    background: #fff0dc;
+    border: 1px solid #f5d0ab;
+    border-radius: 999px;
+    padding: 0.14rem 0.5rem;
+    margin-bottom: 0.55rem;
+}
+.author-modal-bio {
+    margin: 0;
+    color: #57534e;
+    line-height: 1.55;
+    font-size: 0.92rem;
 }
 
 /* ===== BOOKS SECTION ===== */
@@ -212,6 +324,10 @@
     transition: var(--transition);
     box-shadow: var(--shadow);
 }
+.overlay-btn svg {
+    width: 18px;
+    height: 18px;
+}
 .overlay-btn:hover { background: var(--accent); color: white; }
 
 .book-card-content {
@@ -246,6 +362,20 @@
 }
 .rating .stars { color: #F59E0B; font-size: 0.85rem; letter-spacing: 1px; }
 .rating .rating-text { color: var(--gray); font-size: 0.8rem; }
+
+.book-sold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #FFF4E8;
+    border: 1px solid #FBD8B8;
+    color: #B45309;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    margin-bottom: 0.55rem;
+}
 
 .book-card-footer {
     display: flex;
@@ -336,10 +466,22 @@
 <!-- Authors Section -->
 {% if authors %}
 <div class="authors-section">
-    <h2>✍️ Tác giả trong thể loại này</h2>
+    <h2>
+        <span class="section-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4Z"/></svg>
+        </span>
+        Tác giả trong thể loại này
+    </h2>
     <div class="authors-grid">
         {% for author in authors %}
-        <div class="author-card">
+        <div class="author-card"
+             role="button"
+             tabindex="0"
+             data-name="{{ author.name|default:''|escape }}"
+             data-nationality="{{ author.nationality|default:''|escape }}"
+             data-bio="{{ author.bio|default:''|escape }}"
+             onclick="openAuthorInfo(this)"
+             onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();openAuthorInfo(this);}">
             <img class="author-avatar" 
                  src="https://ui-avatars.com/api/?name={{ author.name|urlencode }}&size=112&background=random&color=fff&bold=true&format=svg" 
                  alt="{{ author.name }}"
@@ -357,15 +499,40 @@
                 <p class="author-bio">{{ author.bio|truncatechars:60 }}</p>
                 {% endif %}
             </div>
+            <span class="author-open-hint" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </span>
         </div>
         {% endfor %}
     </div>
 </div>
 {% endif %}
 
+<div id="authorInfoModal" class="author-modal" onclick="if(event.target===this){closeAuthorInfo();}">
+    <div class="author-modal-card">
+        <div class="author-modal-head">
+            <h3 class="author-modal-title">Thông tin tác giả</h3>
+            <button class="author-modal-close" type="button" onclick="closeAuthorInfo()">×</button>
+        </div>
+        <div class="author-modal-body">
+            <div id="authorModalAvatar" class="author-modal-avatar">?</div>
+            <div>
+                <h4 id="authorModalName">-</h4>
+                <span id="authorModalNationality" class="author-modal-nationality" style="display:none;"></span>
+                <p id="authorModalBio" class="author-modal-bio">Chưa có thông tin mô tả cho tác giả này.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Books Section -->
 <div class="books-section">
-    <h2>📚 Sách thuộc thể loại {{ category.name }}</h2>
+    <h2>
+        <span class="section-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h5v14H5a2 2 0 0 0-2 2Z"/><path d="M21 7a2 2 0 0 0-2-2h-5v14h5a2 2 0 0 1 2 2Z"/></svg>
+        </span>
+        Sách thuộc thể loại {{ category.name }}
+    </h2>
     {% if books %}
     <div class="books-grid">
         {% for book in books %}
@@ -377,8 +544,12 @@
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                     <div class="book-card-placeholder" style="display:none;">📚</div>
                     <div class="book-card-overlay">
-                        <button class="overlay-btn" onclick="event.preventDefault();event.stopPropagation();window.location.href='/books/{{ book.book_id }}/'">👁</button>
-                        <button class="overlay-btn" onclick="event.preventDefault();event.stopPropagation();addToCart('{{ book.book_id }}')">🛒</button>
+                        <button class="overlay-btn" onclick="event.preventDefault();event.stopPropagation();window.location.href='/books/{{ book.book_id }}/'" aria-label="Xem chi tiết">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2.06 12.35a1 1 0 0 1 0-.7C3.14 9.24 6.03 6 12 6s8.86 3.24 9.94 5.65a1 1 0 0 1 0 .7C20.86 14.76 17.97 18 12 18s-8.86-3.24-9.94-5.65"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="overlay-btn" onclick="event.preventDefault();event.stopPropagation();addToCart('{{ book.book_id }}')" aria-label="Thêm vào giỏ">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.5 3h2l2.7 11.2a2 2 0 0 0 2 1.5h7.9a2 2 0 0 0 2-1.6L22 6H6"/></svg>
+                        </button>
                     </div>
                 </div>
             </a>
@@ -391,8 +562,9 @@
                 </p>
                 <div class="rating">
                     <span class="stars" data-rating="{{ book.average_rating|default:'0' }}"></span>
-                    <span class="rating-text">({{ book.rating_count|default:'0' }})</span>
+                    <span class="rating-text">({{ book.total_reviews|default:'0' }})</span>
                 </div>
+                <div class="book-sold">Đã bán: {{ book.total_sold|default:0 }}</div>
                 <div class="book-card-footer">
                     <span class="price">{{ book.price|floatformat:0 }}đ</span>
                     {% if book.stock_quantity > 0 %}
@@ -473,5 +645,34 @@ function addToCart(bookId) {
     })
     .catch(function() { showToast('Lỗi kết nối'); });
 }
+
+function openAuthorInfo(card) {
+    var name = card.dataset.name || 'Chưa rõ';
+    var nationality = card.dataset.nationality || '';
+    var bio = card.dataset.bio || '';
+
+    document.getElementById('authorModalName').textContent = name;
+    document.getElementById('authorModalAvatar').textContent = name.trim() ? name.trim().charAt(0).toUpperCase() : '?';
+    var nEl = document.getElementById('authorModalNationality');
+    if (nationality) {
+        nEl.style.display = 'inline-flex';
+        nEl.textContent = nationality;
+    } else {
+        nEl.style.display = 'none';
+        nEl.textContent = '';
+    }
+    document.getElementById('authorModalBio').textContent = bio || 'Chưa có thông tin mô tả cho tác giả này.';
+    document.getElementById('authorInfoModal').classList.add('open');
+}
+
+function closeAuthorInfo() {
+    document.getElementById('authorInfoModal').classList.remove('open');
+}
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeAuthorInfo();
+    }
+});
 </script>
 {% endblock %}

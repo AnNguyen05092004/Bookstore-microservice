@@ -79,6 +79,7 @@ CUSTOMER_SERVICE_URL = os.environ.get(
     "CUSTOMER_SERVICE_URL", "http://customer-service:8000"
 )
 STAFF_SERVICE_URL = os.environ.get("STAFF_SERVICE_URL", "http://staff-service:8000")
+AUTH_SERVICE_URL = os.environ.get("AUTH_SERVICE_URL", "http://auth-service:8000")
 CATALOG_SERVICE_URL = os.environ.get(
     "CATALOG_SERVICE_URL", "http://catalog-service:8000"
 )

@@ -1,4 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [path("admin/", admin.site.urls), path("", include("app.urls"))]
+urlpatterns = [
+    # Django admin for ship-service
+    path("admin/", admin.site.urls),
+    # Shipping domain APIs
+    path("", include("app.urls")),
+]

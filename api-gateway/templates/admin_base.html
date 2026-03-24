@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --bg: #f6f6f7;
+            --card: #ffffff;
+            --line: #f0d5c0;
+            --text: #24354f;
+            --muted: #61708b;
+            --side-900: #832500;
+            --side-800: #7a2200;
+            --accent: #ff5a00;
+            --accent-soft: #ffe2d2;
+            --danger: #de254e;
+            --ok: #12a150;
+            --radius: 16px;
+            --shadow: 0 14px 30px rgba(37, 35, 33, 0.06);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .admin-layout {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--side-900), var(--side-800));
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .brand {
+            padding: 1.45rem 1.2rem 1.2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.18rem;
+        }
+        .brand h1 {
+            margin: 0;
+            font-size: 2rem;
+            letter-spacing: 0.2px;
+            font-weight: 800;
+        }
+        .brand p {
+            margin: 0.22rem 0 0;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.95rem;
+        }
+
+        .menu {
+            padding: 1.15rem 0.95rem;
+            flex: 1;
+        }
+        .menu h3 {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0 0 0.7rem;
+            padding: 0 0.55rem;
+        }
+
+        .menu a {
+            color: #fff7f1;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.72rem;
+            padding: 0.84rem 0.98rem;
+            border-radius: 12px;
+            margin-bottom: 0.48rem;
+            transition: background 0.2s ease, transform 0.2s ease;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+        .menu a i { font-size: 1.08rem; }
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.11);
+            transform: translateX(3px);
+        }
+        .menu a.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(255, 90, 0, 0.3);
+        }
+
+        .side-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 1rem;
+        }
+        .staff-chip {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 13px;
+            padding: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+        .staff-chip .name { font-weight: 700; }
+        .staff-chip .role {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.86rem;
+            margin-top: 0.2rem;
+        }
+
+        .btn {
+            appearance: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            transition: all 0.2s ease;
+            font-size: 0.92rem;
+        }
+        .btn-danger {
+            background: rgba(222, 37, 78, 0.16);
+            color: #ffe8ef;
+            border: 1px solid rgba(255, 151, 176, 0.4);
+            width: 100%;
+        }
+        .btn-danger:hover {
+            background: rgba(222, 37, 78, 0.3);
+        }
+
+        .main {
+            padding: 1.1rem 1.55rem 1.5rem;
+            min-width: 0;
+        }
+
+        .topbar {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 0.95rem 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+        .topbar-title {
+            font-size: 1.14rem;
+            font-weight: 800;
+            color: #872e10;
+        }
+        .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
+        .topbar-note { color: var(--muted); font-size: 0.9rem; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.05rem;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid var(--line); padding: 0.68rem 0.5rem; }
+        th { color: #8a3f16; font-size: 0.81rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+        th.sortable-col { cursor: pointer; user-select: none; position: relative; padding-right: 1.25rem; }
+        th.sortable-col::after {
+            content: '↕';
+            position: absolute;
+            right: 0.3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: #d18a5b;
+        }
+        th.sortable-col.sort-asc::after { content: '↑'; color: #ff5a00; }
+        th.sortable-col.sort-desc::after { content: '↓'; color: #ff5a00; }
+
+        .table-pager { display: flex; align-items: center; gap: 0.32rem; justify-content: flex-end; padding: 0.55rem 0 0.2rem; flex-wrap: wrap; }
+        .table-pager button { border: 1px solid #e8cdb8; background: #fff; color: #8a3f16; border-radius: 6px; padding: 0.26rem 0.62rem; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.15s, color 0.15s, border-color 0.15s; line-height: 1.4; }
+        .table-pager button:hover:not(:disabled) { background: #fff1e8; border-color: #d18a5b; }
+        .table-pager button.active { background: #ff5a00; color: #fff; border-color: #ff5a00; }
+        .table-pager button:disabled { opacity: 0.38; cursor: default; }
+        .table-pager .pager-ellipsis { color: #bbb; font-size: 0.82rem; padding: 0 0.12rem; }
+        .table-pager .pager-info { color: #aaa; font-size: 0.76rem; margin-left: 0.45rem; white-space: nowrap; }
+
+        @media (max-width: 980px) {
+            .admin-layout { grid-template-columns: 1fr; }
+            .sidebar { position: sticky; top: 0; z-index: 10; }
+            .menu { display: flex; overflow-x: auto; gap: 0.5rem; }
+            .menu h3 { display: none; }
+            .menu a { margin-bottom: 0; white-space: nowrap; }
+            .side-footer { display: none; }
+        }
+    </style>
+    {% block admin_head %}{% endblock %}
+</head>
+<body>
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="brand-logo"><i class="bi bi-book"></i></span>
+            <div>
+                <h1>BookStore</h1>
+                <p>{% if admin_role == 'manager' %}Management Portal{% else %}Staff Portal{% endif %}</p>
+            </div>
+        </div>
+        <nav class="menu">
+            <h3>{% if admin_role == 'manager' %}Báo cáo{% else %}Nghiệp vụ{% endif %}</h3>
+            {% if admin_role == 'manager' %}
+            <a href="/manager/dashboard/" class="{% if active_nav == 'manager-dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i><span>Tổng quan KPI</span></a>
+            <a href="/manager/staffs/" class="{% if active_nav == 'manager-staffs' %}active{% endif %}"><i class="bi bi-people"></i><span>Quản lý Staffs</span></a>
+            <a href="/manager/inventory/" class="{% if active_nav == 'manager-inventory' %}active{% endif %}"><i class="bi bi-journal-bookmark"></i><span>Quản lý Inventory</span></a>
+            <a href="/manager/store/" class="{% if active_nav == 'manager-store' %}active{% endif %}"><i class="bi bi-gear"></i><span>Quản lý Store</span></a>
+            {% else %}
+            <a href="/staff/dashboard/" class="{% if active_nav == 'staff-dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+            <a href="/staff/orders/" class="{% if active_nav == 'staff-orders' %}active{% endif %}"><i class="bi bi-bag-check"></i><span>Quản lý Đơn hàng</span></a>
+            <a href="/staff/inventory/" class="{% if active_nav == 'staff-inventory' %}active{% endif %}"><i class="bi bi-journal-richtext"></i><span>Quản lý Kho sách</span></a>
+            <a href="/staff/settings/" class="{% if active_nav == 'staff-settings' %}active{% endif %}"><i class="bi bi-gear"></i><span>Settings</span></a>
+            {% endif %}
+        </nav>
+        <div class="side-footer">
+            <div class="staff-chip">
+                <div class="name" id="adminName">Staff</div>
+                <div class="role" id="adminRole">Nhân viên</div>
+            </div>
+            <button class="btn btn-danger" onclick="adminLogout()">Đăng xuất</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <div class="topbar-title">{% block admin_title %}Dashboard{% endblock %}</div>
+                <div class="topbar-note">{% block admin_subtitle %}Hệ thống vận hành nội bộ{% endblock %}</div>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn" style="border:1px solid #f0d5c0; background:#fff; color:#8b2f0f;" onclick="adminLogout()"><i class="bi bi-box-arrow-right" style="margin-right:6px;"></i>Đăng xuất</button>
+                <div id="topRoleBadge" class="topbar-note"></div>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script>
+(function () {
+    var name = localStorage.getItem('staff_name') || 'Staff';
+    var role = (localStorage.getItem('staff_role') || 'staff').toLowerCase();
+    var roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+
+    var n = document.getElementById('adminName');
+    var r = document.getElementById('adminRole');
+    var b = document.getElementById('topRoleBadge');
+    if (n) n.textContent = name;
+    if (r) r.textContent = roleLabel;
+    if (b) b.textContent = 'Role: ' + roleLabel;
+})();
+
+function adminLogout() {
+    var role = (localStorage.getItem('staff_role') || '').toLowerCase();
+    fetch('/api/auth/staff/logout/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .catch(function () {
+        // Continue local cleanup even if logout API fails.
+    })
+    .finally(function () {
+        localStorage.removeItem('staff_token');
+        localStorage.removeItem('staff_id');
+        localStorage.removeItem('staff_name');
+        localStorage.removeItem('staff_role');
+        if (role === 'manager' || role === 'admin') {
+            window.location.href = '/manager/login/';
+            return;
+        }
+        window.location.href = '/staff/login/';
+    });
+}
+
+function staggerReveal(selector, baseDelay) {
+    var nodes = Array.prototype.slice.call(document.querySelectorAll(selector));
+    var delay = Number(baseDelay || 80);
+    nodes.forEach(function (node, idx) {
+        node.style.transitionDelay = (idx * delay) + 'ms';
+        requestAnimationFrame(function () {
+            node.classList.add('in');
+        });
+    });
+}
+
+function _coerceSortValue(text) {
+    var raw = String(text || '').trim();
+    var numberLike = raw.replace(/[^0-9.-]+/g, '');
+    if (numberLike && !isNaN(Number(numberLike))) {
+        return Number(numberLike);
+    }
+    return raw.toLowerCase();
+}
+
+var _paginationState = {};
+
+function enableSortableTable(tableId) {
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var thead = table.querySelector('thead');
+    var tbody = table.querySelector('tbody');
+    if (!thead || !tbody) return;
+
+    var headers = Array.prototype.slice.call(thead.querySelectorAll('th'));
+    headers.forEach(function (th, colIndex) {
+        if (th.getAttribute('data-sort') === 'off') return;
+        if (th.classList.contains('sortable-col')) return;
+        th.classList.add('sortable-col');
+        th.addEventListener('click', function () {
+            var asc = !th.classList.contains('sort-asc');
+            headers.forEach(function (h) { h.classList.remove('sort-asc', 'sort-desc'); });
+            th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            rows.sort(function (a, b) {
+                var av = _coerceSortValue((a.children[colIndex] || {}).textContent || '');
+                var bv = _coerceSortValue((b.children[colIndex] || {}).textContent || '');
+                if (av < bv) return asc ? -1 : 1;
+                if (av > bv) return asc ? 1 : -1;
+                return 0;
+            });
+            rows.forEach(function (row) { tbody.appendChild(row); });
+            if (_paginationState[tableId]) { _paginationState[tableId].page = 1; _renderPagination(tableId); }
+        });
+    });
+}
+
+function enablePagination(tableId, pageSize) {
+    pageSize = pageSize || 10;
+    _paginationState[tableId] = { page: 1, pageSize: pageSize };
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    if (!document.getElementById('pager-' + tableId)) {
+        var pager = document.createElement('div');
+        pager.id = 'pager-' + tableId;
+        pager.className = 'table-pager';
+        table.parentNode.insertBefore(pager, table.nextSibling);
+    }
+    _renderPagination(tableId);
+}
+
+function _renderPagination(tableId) {
+    var state = _paginationState[tableId];
+    if (!state) return;
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+    var total = rows.length;
+    var totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+    if (state.page > totalPages) state.page = totalPages;
+    if (state.page < 1) state.page = 1;
+    var start = (state.page - 1) * state.pageSize;
+    var end = start + state.pageSize;
+    rows.forEach(function (row, i) {
+        row.style.display = (i >= start && i < end) ? '' : 'none';
+    });
+    var pager = document.getElementById('pager-' + tableId);
+    if (!pager) return;
+    if (totalPages <= 1) { pager.innerHTML = ''; return; }
+    var html = '';
+    html += '<button onclick="_goPage(\'' + tableId + '\',' + (state.page - 1) + ')"' + (state.page <= 1 ? ' disabled' : '') + '>&#8249;</button>';
+    var startP = Math.max(1, state.page - 2);
+    var endP = Math.min(totalPages, startP + 4);
+    startP = Math.max(1, endP - 4);
+    if (startP > 1) {
+        html += '<button onclick="_goPage(\'' + tableId + '\',1)">1</button>';
+        if (startP > 2) html += '<span class="pager-ellipsis">&hellip;</span>';
+    }
+    for (var p = startP; p <= endP; p++) {
+        html += '<button class="' + (p === state.page ? 'active' : '') + '" onclick="_goPage(\'' + tableId + '\',' + p + ')">' + p + '</button>';
+    }
+    if (endP < totalPages) {
+        if (endP < totalPages - 1) html += '<span class="pager-ellipsis">&hellip;</span>';
+        html += '<button onclick="_goPage(\'' + tableId + '\',' + totalPages + ')">' + totalPages + '</button>';
+    }
+    html += '<button onclick="_goPage(\'' + tableId + '\',' + (state.page + 1) + ')"' + (state.page >= totalPages ? ' disabled' : '') + '>&#8250;</button>';
+    html += '<span class="pager-info">' + (total ? (start + 1) : 0) + '\u2013' + Math.min(end, total) + '\u00a0/\u00a0' + total + '</span>';
+    pager.innerHTML = html;
+}
+
+function _goPage(tableId, page) {
+    if (!_paginationState[tableId]) return;
+    _paginationState[tableId].page = page;
+    _renderPagination(tableId);
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

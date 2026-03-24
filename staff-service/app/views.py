@@ -24,8 +24,15 @@ class StaffList(APIView):
     def get(self, request):
         role = request.query_params.get("role")
         department = request.query_params.get("department")
+        include_inactive = (
+            request.query_params.get("include_inactive", "false").lower() == "true"
+        )
 
-        staff = Staff.objects.filter(is_active=True)
+        staff = (
+            Staff.objects.all()
+            if include_inactive
+            else Staff.objects.filter(is_active=True)
+        )
 
         if role:
             staff = staff.filter(role=role)
@@ -53,6 +60,16 @@ class StaffDetail(APIView):
     def put(self, request, staff_id):
         staff = get_object_or_404(Staff, staff_id=staff_id)
         serializer = StaffSerializer(staff, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, staff_id):
+        staff = get_object_or_404(Staff, staff_id=staff_id)
+        allowed_fields = {"is_active", "role", "department"}
+        update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
+        serializer = StaffSerializer(staff, data=update_data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

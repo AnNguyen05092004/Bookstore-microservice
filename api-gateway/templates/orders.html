@@ -4,146 +4,277 @@
 
 {% block content %}
 <style>
-.orders-container {
-    max-width: 1000px;
-    margin: 0 auto;
-}
+/* ===== ORDERS PAGE ===== */
+.orders-wrap { max-width: 860px; margin: 0 auto; padding-bottom: 3rem; }
 
-.page-header {
-    margin-bottom: 2rem;
-}
-.page-header h1 { font-size: 1.8rem; }
-
-.orders-list {
+/* Page header */
+.orders-page-header {
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #F3EAE0;
 }
+.orders-header-icon {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #C2410C, #F97316);
+    border-radius: 15px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(194,65,12,0.3);
+}
+.orders-page-header h1 { font-size: 1.75rem; font-weight: 800; color: #1C1917; margin: 0; }
+.orders-page-header p  { color: #9CA3AF; font-size: 0.88rem; margin: 0.2rem 0 0; }
 
+/* List */
+.orders-list { display: flex; flex-direction: column; gap: 1.4rem; }
+
+/* Card */
 .order-card {
     background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    border-radius: 20px;
+    border: 1px solid #F0E6DC;
     overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.04);
-    transition: var(--transition);
+    transition: box-shadow 0.22s, transform 0.22s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
 }
-.order-card:hover { box-shadow: var(--shadow-lg); }
+.order-card:hover { box-shadow: 0 10px 32px rgba(194,65,12,0.1); transform: translateY(-2px); }
 
+/* Order header strip */
 .order-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
-    background: linear-gradient(135deg, var(--primary-light) 0%, #FEF3E2 100%);
-    border-bottom: 1px solid var(--gray-light);
-}
-
-.order-number {
-    font-weight: 700;
-    color: var(--dark);
-    font-size: 1rem;
-}
-
-.order-date {
-    color: var(--gray);
-    font-size: 0.85rem;
-    margin-top: 0.15rem;
-}
-
-.order-status {
-    padding: 0.4rem 1rem;
-    border-radius: var(--radius-full);
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.status-pending { background: #FEF3CD; color: #92400E; }
-.status-processing { background: #DBEAFE; color: #1E40AF; }
-.status-shipped { background: #D1FAE5; color: #065F46; }
-.status-delivered { background: #A7F3D0; color: #065F46; }
-.status-cancelled { background: var(--danger-light); color: #991B1B; }
-
-.order-items {
-    padding: 1rem 1.5rem;
-}
-
-.order-item {
-    display: flex;
+    padding: 1.1rem 1.6rem;
+    background: linear-gradient(135deg, #FFF8F2, #FEF2E4);
+    border-bottom: 1px solid #F3E8DC;
     gap: 1rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px solid var(--gray-lighter);
-    align-items: center;
+    flex-wrap: wrap;
 }
-.order-item:last-child { border-bottom: none; }
-
-.item-image {
-    width: 55px;
-    height: 70px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
+.order-header-left { display: flex; align-items: center; gap: 0.9rem; }
+.order-header-num-icon {
+    width: 38px; height: 38px;
+    background: rgba(194,65,12,0.1);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    color: #C2410C;
     flex-shrink: 0;
 }
+.order-number { font-weight: 800; color: #1C1917; font-size: 0.97rem; }
+.order-date   { color: #9CA3AF; font-size: 0.8rem; margin-top: 0.1rem; display: flex; align-items: center; gap: 0.3rem; }
 
-.item-info { flex: 1; }
-.item-title { font-weight: 600; color: var(--dark); margin-bottom: 0.15rem; }
-.item-quantity { color: var(--gray); font-size: 0.85rem; }
-.item-price { font-weight: 600; color: var(--primary); white-space: nowrap; }
+/* Status badge */
+.order-status {
+    display: inline-flex; align-items: center; gap: 0.38rem;
+    padding: 0.38rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.order-status svg { width: 12px; height: 12px; }
+.status-pending    { background: #FEF3CD; color: #92400E; border: 1px solid #FDE68A; }
+.status-processing { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+.status-shipped    { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+.status-delivered  { background: #ECFDF5; color: #065F46; border: 1px solid #6EE7B7; }
+.status-cancelled  { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
 
+/* Progress tracker */
+.order-progress {
+    padding: 1rem 1.6rem;
+    border-bottom: 1px solid #F5EEE8;
+    background: #FDFAF8;
+}
+.progress-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+}
+.progress-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #E5D9CF;
+    z-index: 0;
+}
+.progress-step.done:not(:last-child)::after { background: #C2410C; }
+.ps-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid #E5D9CF;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    color: #D1C4B8;
+    position: relative; z-index: 1;
+    transition: all 0.2s;
+}
+.progress-step.done .ps-dot  { background: #C2410C; border-color: #C2410C; color: white; }
+.progress-step.active .ps-dot { background: white; border-color: #C2410C; color: #C2410C; box-shadow: 0 0 0 4px rgba(194,65,12,0.14); }
+.ps-label { font-size: 0.7rem; color: #9CA3AF; margin-top: 0.38rem; font-weight: 600; text-align: center; }
+.progress-step.done .ps-label   { color: #C2410C; }
+.progress-step.active .ps-label { color: #C2410C; }
+
+/* Items */
+.order-items { padding: 0.5rem 1.6rem; }
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid #F5EEE8;
+}
+.order-item:last-child { border-bottom: none; }
+.item-cover {
+    width: 52px; height: 68px;
+    border-radius: 9px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #FEE2CC, #FDBA74);
+    display: flex; align-items: center; justify-content: center;
+    color: #C2410C;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+.item-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.item-info { flex: 1; min-width: 0; }
+.item-title { font-weight: 700; color: #1C1917; font-size: 0.94rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta  { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.3rem; }
+.item-qty-badge {
+    display: inline-flex; align-items: center; gap: 0.28rem;
+    background: #FEF3E8; color: #92400E;
+    border-radius: 6px; padding: 0.18rem 0.55rem;
+    font-size: 0.76rem; font-weight: 600;
+}
+.item-unit-price { color: #9CA3AF; font-size: 0.8rem; }
+.item-price { font-weight: 800; color: #C2410C; white-space: nowrap; font-size: 0.97rem; }
+
+/* Shipping row */
+.order-shipping {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.8rem 1.6rem;
+    background: #FAFAFA;
+    border-top: 1px solid #F0E8E0;
+    font-size: 0.85rem;
+    color: #78716C;
+}
+.order-shipping svg { color: #C2410C; flex-shrink: 0; }
+
+/* Footer */
 .order-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    background: var(--gray-lighter);
-    border-top: 1px solid var(--gray-light);
+    padding: 1rem 1.6rem;
+    background: #FFF8F2;
+    border-top: 1px solid #F0E8E0;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
+.order-meta-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #9CA3AF; }
+.order-meta-row svg { color: #C2410C; }
+.order-total-row { display: flex; align-items: center; gap: 0.5rem; }
+.order-total-label { color: #78716C; font-size: 0.88rem; }
+.order-total-amount { font-weight: 800; color: #C2410C; font-size: 1.22rem; }
 
-.order-total {
-    font-size: 1rem;
-}
-.order-total span { color: var(--gray); }
-.order-total strong { color: var(--primary); font-size: 1.2rem; }
-
-.shipping-info {
-    padding: 0.75rem 1.5rem;
-    background: white;
-    border-top: 1px solid var(--gray-lighter);
-    font-size: 0.9rem;
-    color: var(--gray);
-}
-
-.empty-orders {
+/* Empty & loading */
+.orders-empty {
     text-align: center;
+    padding: 4.5rem 2rem;
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #F0E6DC;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.orders-empty-icon {
+    width: 80px; height: 80px;
+    background: #FEF3E8;
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: #C2410C;
+}
+.orders-empty h2 { font-size: 1.3rem; color: #1C1917; margin-bottom: 0.6rem; }
+.orders-empty p  { color: #9CA3AF; margin-bottom: 1.8rem; font-size: 0.94rem; }
+.orders-empty .btn-shop {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: #C2410C; color: white;
+    padding: 0.8rem 1.8rem; border-radius: 12px;
+    font-weight: 700; font-size: 0.94rem; text-decoration: none;
+    box-shadow: 0 6px 18px rgba(194,65,12,0.32);
+    transition: all 0.2s;
+}
+.orders-empty .btn-shop:hover { background: #9A3412; transform: translateY(-2px); }
+
+.orders-loading {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.75rem;
     padding: 4rem 2rem;
     background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    border-radius: 20px;
+    color: #9CA3AF;
+    font-size: 0.95rem;
 }
-.empty-orders h2 { margin-bottom: 0.75rem; }
-.empty-orders p { color: var(--gray); margin-bottom: 1.5rem; }
-.empty-orders .btn { display: inline-flex; }
+.spinner {
+    width: 22px; height: 22px;
+    border: 2.5px solid #F0E6DC;
+    border-top-color: #C2410C;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.loading {
-    text-align: center;
-    padding: 3rem;
-    color: var(--gray);
+/* Summary bar */
+.orders-summary {
+    display: flex; gap: 1rem;
+    margin-bottom: 1.6rem;
+    flex-wrap: wrap;
 }
+.summary-chip {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: white;
+    border: 1px solid #F0E6DC;
+    border-radius: 12px;
+    padding: 0.55rem 1rem;
+    font-size: 0.82rem;
+    color: #78716C;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.summary-chip span { color: #C2410C; font-weight: 800; }
+.summary-chip svg { color: #C2410C; }
 </style>
 
-<div class="orders-container">
-    <div class="page-header">
-        <h1>📦 Đơn hàng của tôi</h1>
+<div class="orders-wrap">
+    <!-- Header -->
+    <div class="orders-page-header">
+        <div class="orders-header-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+        </div>
+        <div>
+            <h1>Đơn hàng của tôi</h1>
+            <p>Theo dõi và quản lý tất cả đơn hàng</p>
+        </div>
     </div>
-    
+
     <div id="ordersContent">
-        <div class="loading">
-            <p>Đang tải đơn hàng...</p>
+        <div class="orders-loading">
+            <div class="spinner"></div>
+            Đang tải đơn hàng...
         </div>
     </div>
 </div>
@@ -151,122 +282,183 @@
 <script>
 const customerId = localStorage.getItem('customer_id');
 
+// SVG icon snippets used in JS-rendered HTML
+const ICONS = {
+    receipt: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,
+    clock:   `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    book:    `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+    pin:     `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+    tag:     `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+    box:     `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,
+    // status icons
+    pending:    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    processing: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`,
+    shipped:    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+    delivered:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+    cancelled:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    // progress step icons
+    ps_check: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`,
+    ps_clock: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    ps_truck: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+    ps_home:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+};
+
+const STATUS_MAP = {
+    'pending':    { text: 'Chờ xử lý',  cls: 'status-pending',    icon: 'pending',    step: 0 },
+    'processing': { text: 'Đang xử lý', cls: 'status-processing', icon: 'processing', step: 1 },
+    'shipped':    { text: 'Đang giao',  cls: 'status-shipped',    icon: 'shipped',    step: 2 },
+    'delivered':  { text: 'Đã giao',    cls: 'status-delivered',  icon: 'delivered',  step: 3 },
+    'cancelled':  { text: 'Đã hủy',     cls: 'status-cancelled',  icon: 'cancelled',  step: -1 },
+};
+
+const PROGRESS_STEPS = [
+    { key: 'pending',    label: 'Đặt hàng',  icon: 'ps_clock' },
+    { key: 'processing', label: 'Xử lý',     icon: 'ps_check' },
+    { key: 'shipped',    label: 'Đang giao', icon: 'ps_truck' },
+    { key: 'delivered',  label: 'Đã nhận',   icon: 'ps_home'  },
+];
+
 document.addEventListener('DOMContentLoaded', function() {
-    if (!customerId) {
-        window.location.href = '/login/';
-        return;
-    }
+    if (!customerId) { window.location.href = '/login/'; return; }
     loadOrders();
 });
 
 function loadOrders() {
     fetch(`/api/orders/${customerId}/`)
         .then(r => r.json())
-        .then(orders => {
-            renderOrders(orders);
-        })
-        .catch(err => {
-            console.error('Error loading orders:', err);
+        .then(renderOrders)
+        .catch(() => {
             document.getElementById('ordersContent').innerHTML = `
-                <div class="empty-orders">
-                    <h2>❌ Không thể tải đơn hàng</h2>
+                <div class="orders-empty">
+                    <div class="orders-empty-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h2>Không thể tải đơn hàng</h2>
                     <p>Vui lòng thử lại sau</p>
-                </div>
-            `;
+                </div>`;
         });
 }
 
 function renderOrders(orders) {
     const container = document.getElementById('ordersContent');
-    
     if (!orders || orders.length === 0) {
         container.innerHTML = `
-            <div class="empty-orders">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+            <div class="orders-empty">
+                <div class="orders-empty-icon">
+                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </div>
                 <h2>Chưa có đơn hàng nào</h2>
-                <p>Hãy khám phá các sách hay và đặt hàng ngay!</p>
-                <a href="/books/" class="btn">Khám phá sách</a>
-            </div>
-        `;
+                <p>Hãy khám phá bộ sưu tập sách và đặt hàng ngay!</p>
+                <a href="/books/" class="btn-shop">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Khám phá sách
+                </a>
+            </div>`;
         return;
     }
-    
-    let html = '<div class="orders-list">';
-    
+
+    // Summary chips
+    const total = orders.length;
+    const totalSpend = orders.reduce((s, o) => s + parseFloat(o.total_amount || 0), 0);
+    let summaryHtml = `
+        <div class="orders-summary">
+            <div class="summary-chip">${ICONS.box} Tổng đơn: <span>${total}</span></div>
+            <div class="summary-chip">${ICONS.tag} Tổng chi tiêu: <span>${formatPrice(totalSpend)}</span></div>
+        </div>`;
+
+    let listHtml = '<div class="orders-list">';
     orders.forEach(order => {
-        const orderDate = new Date(order.order_date).toLocaleDateString('vi-VN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+        const orderDate = new Date(order.order_date).toLocaleString('vi-VN', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
         });
-        
-        const statusMap = {
-            'pending': { text: 'Chờ xử lý', class: 'status-pending' },
-            'processing': { text: 'Đang xử lý', class: 'status-processing' },
-            'shipped': { text: 'Đang giao', class: 'status-shipped' },
-            'delivered': { text: 'Đã giao', class: 'status-delivered' },
-            'cancelled': { text: 'Đã hủy', class: 'status-cancelled' }
-        };
-        
-        const status = statusMap[order.status] || { text: order.status, class: 'status-pending' };
-        
-        html += `
-            <div class="order-card">
-                <div class="order-header">
-                    <div>
-                        <div class="order-number">Đơn hàng #${order.order_number}</div>
-                        <div class="order-date">${orderDate}</div>
-                    </div>
-                    <span class="order-status ${status.class}">${status.text}</span>
-                </div>
-                
-                <div class="order-items">
-        `;
-        
+        const st = STATUS_MAP[order.status] || STATUS_MAP['pending'];
+        const stepIdx = st.step;
+
+        // Progress bar (skip for cancelled)
+        let progressHtml = '';
+        if (order.status !== 'cancelled') {
+            progressHtml = '<div class="order-progress"><div class="progress-steps">';
+            PROGRESS_STEPS.forEach((step, idx) => {
+                const isDone   = idx < stepIdx;
+                const isActive = idx === stepIdx;
+                const cls = isDone ? 'done' : (isActive ? 'active' : '');
+                progressHtml += `
+                    <div class="progress-step ${cls}">
+                        <div class="ps-dot">${ICONS[step.icon]}</div>
+                        <div class="ps-label">${step.label}</div>
+                    </div>`;
+            });
+            progressHtml += '</div></div>';
+        }
+
+        // Items
+        let itemsHtml = '';
         if (order.items && order.items.length > 0) {
             order.items.forEach(item => {
-                html += `
+                const unitPrice = item.quantity > 0 ? parseFloat(item.total_price) / item.quantity : 0;
+                itemsHtml += `
                     <div class="order-item">
-                        <div class="item-image">📚</div>
+                        <div class="item-cover">${ICONS.book}</div>
                         <div class="item-info">
                             <div class="item-title">${item.book_title}</div>
-                            <div class="item-quantity">Số lượng: ${item.quantity}</div>
+                            <div class="item-meta">
+                                <span class="item-qty-badge">${ICONS.box} x${item.quantity}</span>
+                                <span class="item-unit-price">${formatPrice(unitPrice)}/cuốn</span>
+                            </div>
                         </div>
                         <div class="item-price">${formatPrice(item.total_price)}</div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
-        
-        html += `
+
+        listHtml += `
+            <div class="order-card">
+                <div class="order-header">
+                    <div class="order-header-left">
+                        <div class="order-header-num-icon">${ICONS.receipt}</div>
+                        <div>
+                            <div class="order-number">#${order.order_number}</div>
+                            <div class="order-date">${ICONS.clock} ${orderDate}</div>
+                        </div>
+                    </div>
+                    <span class="order-status ${st.cls}">${ICONS[st.icon]} ${st.text}</span>
                 </div>
-                
-                <div class="shipping-info">
-                    📍 ${order.shipping_address}
+
+                ${progressHtml}
+
+                <div class="order-items">${itemsHtml}</div>
+
+                <div class="order-shipping">
+                    ${ICONS.pin} ${order.shipping_address}
                 </div>
-                
+
                 <div class="order-footer">
-                    <div class="order-total">
-                        <span>Tổng cộng: </span>
-                        <strong>${formatPrice(order.total_amount)}</strong>
+                    <div class="order-meta-row">
+                        ${ICONS.box}
+                        ${(order.items || []).length} sản phẩm
+                    </div>
+                    <div class="order-total-row">
+                        <span class="order-total-label">Tổng cộng</span>
+                        <span class="order-total-amount">${formatPrice(order.total_amount)}</span>
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
-    
-    html += '</div>';
-    container.innerHTML = html;
+
+    listHtml += '</div>';
+    container.innerHTML = summaryHtml + listHtml;
 }
 
 function formatPrice(price) {
     const num = parseFloat(price);
-    if (num >= 1000) {
-        return num.toLocaleString('vi-VN') + 'đ';
-    }
-    return '$' + num.toFixed(2);
+    if (isNaN(num)) return '—';
+    return num.toLocaleString('vi-VN') + 'đ';
 }
 </script>
 {% endblock %}

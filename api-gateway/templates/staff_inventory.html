@@ -1,0 +1,365 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Staff Inventory - BookStore{% endblock %}
+{% block admin_title %}Quản lý Kho sách{% endblock %}
+{% block admin_subtitle %}Thêm, sửa, xóa sách và kiểm tra tồn kho{% endblock %}
+
+{% block content %}
+<style>
+.status-chip { display:inline-flex; align-items:center; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; }
+.status-chip.available { background:#def7e8; color:#0f8d45; }
+.status-chip.out_of_stock { background:#ffe2ea; color:#bf1b3d; }
+.status-chip.coming_soon { background:#e8f0ff; color:#2563eb; }
+.status-chip.discontinued { background:#f3f4f6; color:#6b7280; }
+.stock-warn { color:#bf1b3d; font-weight:700; }
+.inv-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.85rem; flex-wrap:wrap; gap:0.5rem; }
+.inv-search { border:1px solid #e8cdb8; border-radius:8px; padding:0.38rem 0.75rem; font-size:0.88rem; width:220px; outline:none; }
+.inv-search:focus { border-color:#ff5a00; }
+.btn-add-book { background:#ff5a00; color:#fff; border:none; border-radius:8px; padding:0.42rem 1.1rem; font-size:0.88rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.4rem; }
+.btn-add-book:hover { background:#e04e00; }
+.action-btn { border:none; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+.action-update { background:#e8f4fd; color:#1a6fa3; border:1px solid #b3d8f0; }
+.action-update:hover { background:#cde8f7; }
+.btn-del-book { background:#fff0f0; color:#b42318; border:1px solid #f5c2c0; border-radius:8px; padding:8px 18px; font-size:14px; font-weight:600; cursor:pointer; margin-right:auto; }
+.btn-del-book:hover { background:#fde0df; }
+
+/* Modal */
+.inv-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.42); z-index:1000; align-items:center; justify-content:center; padding:1rem; }
+.inv-modal-bg.open { display:flex; }
+.inv-modal { background:#fff; border-radius:14px; padding:1.8rem 2rem; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.18); }
+.inv-modal h3 { margin:0 0 1.2rem; font-size:1.1rem; color:#8a3f16; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; }
+.form-grid .full { grid-column:1/-1; }
+.form-label { font-size:0.79rem; color:#6b7280; font-weight:600; margin-bottom:3px; display:block; }
+.form-input, .form-select, .form-textarea { width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:0.42rem 0.7rem; font-size:0.88rem; outline:none; box-sizing:border-box; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:#ff5a00; }
+.form-textarea { resize:vertical; min-height:72px; }
+.modal-actions { display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1.3rem; }
+.btn-cancel-modal { background:#fff; border:1px solid #d1d5db; border-radius:8px; padding:8px 20px; cursor:pointer; font-size:14px; }
+.btn-save-modal { background:#ff5a00; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-size:14px; font-weight:700; cursor:pointer; }
+.btn-save-modal:hover { background:#e04e00; }
+.btn-save-modal:disabled { opacity:0.55; cursor:default; }
+
+/* Delete confirm */
+.del-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.42); z-index:1001; align-items:center; justify-content:center; }
+.del-modal-bg.open { display:flex; }
+.del-modal { background:#fff; border-radius:12px; padding:1.6rem 1.8rem; max-width:380px; width:90%; box-shadow:0 6px 30px rgba(0,0,0,0.16); }
+.del-modal h3 { color:#b42318; margin:0 0 0.6rem; }
+.del-modal p { color:#6b7280; font-size:0.9rem; margin:0 0 1.2rem; }
+.del-actions { display:flex; gap:0.75rem; justify-content:flex-end; }
+
+/* toast */
+.inv-toast { position:fixed; bottom:1.5rem; right:1.5rem; background:#323232; color:#fff; padding:0.65rem 1.2rem; border-radius:10px; font-size:0.88rem; z-index:2000; opacity:0; transform:translateY(8px); transition:opacity 0.22s, transform 0.22s; pointer-events:none; }
+.inv-toast.show { opacity:1; transform:translateY(0); }
+.inv-toast.success { background:#0f8d45; }
+.inv-toast.error { background:#b42318; }
+</style>
+
+<!-- Add / Edit Modal -->
+<div id="bookModal" class="inv-modal-bg">
+  <div class="inv-modal" onclick="event.stopPropagation()">
+    <h3 id="modalTitle">Thêm sách mới</h3>
+    <div class="form-grid">
+      <div class="full">
+        <label class="form-label">Tên sách <span style="color:#b42318">*</span></label>
+        <input id="fTitle" class="form-input" type="text" placeholder="Nhập tên sách">
+      </div>
+      <div>
+        <label class="form-label">ISBN</label>
+        <input id="fIsbn" class="form-input" type="text" placeholder="978-604...">
+      </div>
+      <div>
+        <label class="form-label">Giá bán (đ) <span style="color:#b42318">*</span></label>
+        <input id="fPrice" class="form-input" type="number" min="0" placeholder="0">
+      </div>
+      <div>
+        <label class="form-label">Tồn kho</label>
+        <input id="fStock" class="form-input" type="number" min="0" placeholder="0">
+      </div>
+      <div>
+        <label class="form-label">Trạng thái</label>
+        <select id="fStatus" class="form-select">
+          <option value="available">Available</option>
+          <option value="out_of_stock">Out of Stock</option>
+          <option value="coming_soon">Coming Soon</option>
+          <option value="discontinued">Discontinued</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Tác giả</label>
+        <select id="fAuthor" class="form-select"><option value="">-- Chọn tác giả --</option></select>
+      </div>
+      <div>
+        <label class="form-label">Danh mục</label>
+        <select id="fCategory" class="form-select"><option value="">-- Chọn danh mục --</option></select>
+      </div>
+      <div>
+        <label class="form-label">Năm xuất bản</label>
+        <input id="fYear" class="form-input" type="number" min="1900" max="2100" placeholder="2024">
+      </div>
+      <div class="full">
+        <label class="form-label">URL ảnh bìa</label>
+        <input id="fCover" class="form-input" type="url" placeholder="https://...">
+      </div>
+      <div class="full">
+        <label class="form-label">Mô tả</label>
+        <textarea id="fDesc" class="form-textarea" placeholder="Mô tả ngắn về sách..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="btnDelBook" class="btn-del-book" onclick="deleteCurrentBook()" style="display:none;"><i class="bi bi-trash"></i> Xóa sách</button>
+      <button class="btn-cancel-modal" onclick="closeBookModal()">Huỷ</button>
+      <button id="btnSave" class="btn-save-modal" onclick="saveBook()">Lưu cập nhật</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="invToast" class="inv-toast"></div>
+
+<div class="card reveal">
+  <div class="inv-toolbar">
+    <input id="invSearch" class="inv-search" type="text" placeholder="Tìm tên sách / ISBN..." oninput="filterInventory()">
+    <button class="btn-add-book" onclick="openAddModal()"><i class="bi bi-plus-lg"></i> Thêm sách</button>
+  </div>
+  <table id="staffInventoryTable">
+    <thead>
+      <tr>
+        <th>Tên sách</th>
+        <th>ISBN</th>
+        <th>Giá</th>
+        <th>Tồn kho</th>
+        <th>Trạng thái</th>
+        <th data-sort="off">Thao tác</th>
+      </tr>
+    </thead>
+    <tbody id="inventoryRows">
+      <tr><td colspan="6" style="color:#6b7280;">Đang tải...</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var _allBooks = [];
+var _authors = [];
+var _categories = [];
+var _editBookId = null;
+var _deleteBookId = null;
+
+function showToast(msg, type) {
+    var t = document.getElementById('invToast');
+    t.textContent = msg;
+    t.className = 'inv-toast ' + (type || '');
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 3000);
+}
+
+function filterInventory() {
+    var q = (document.getElementById('invSearch').value || '').toLowerCase().trim();
+    var rows = q ? _allBooks.filter(function (b) {
+        return (b.title || '').toLowerCase().indexOf(q) >= 0 ||
+               (b.isbn || '').toLowerCase().indexOf(q) >= 0;
+    }) : _allBooks;
+    renderRows(rows);
+}
+
+function renderRows(books) {
+    var tbody = document.getElementById('inventoryRows');
+    if (!books.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#6b7280;">Không có sách phù hợp</td></tr>';
+        enablePagination('staffInventoryTable');
+        return;
+    }
+    tbody.innerHTML = books.map(function (b) {
+        var stock = Number(b.stock_quantity || 0);
+        var stockCell = stock <= 10
+          ? '<span class="stock-warn">' + stock + ' ⚠️</span>'
+          : stock;
+        var statusMap = {
+          available:    { label: 'Còn hàng',   cls: 'available' },
+          out_of_stock: { label: 'Hết hàng',   cls: 'out_of_stock' },
+          coming_soon:  { label: 'Sắp ra mắt', cls: 'coming_soon' },
+          discontinued: { label: 'Ngừng bán',  cls: 'discontinued' }
+        };
+        var st = statusMap[b.status] || { label: b.status || '-', cls: '' };
+        var tag = '<span class="status-chip ' + st.cls + '">' + st.label + '</span>';
+        var authorName = '';
+        if (b.author_id) {
+            var au = _authors.find(function (a) { return a.author_id === b.author_id || a.id === b.author_id; });
+            authorName = au ? (au.name || au.author_name || '') : '';
+        }
+        var titleCell = (b.title || '-') + (authorName ? '<br><small style="color:#9ca3af;">' + authorName + '</small>' : '');
+        return '<tr>' +
+            '<td>' + titleCell + '</td>' +
+            '<td>' + (b.isbn || '-') + '</td>' +
+            '<td>' + Math.round(Number(b.price || 0)).toLocaleString('vi-VN') + 'đ</td>' +
+            '<td>' + stockCell + '</td>' +
+            '<td>' + tag + '</td>' +
+            '<td>' +
+              '<button class="action-btn action-update" onclick="openEditModal(\'' + b.book_id + '\')">Cập nhật</button>' +
+            '</td>' +
+        '</tr>';
+    }).join('');
+    enableSortableTable('staffInventoryTable');
+    enablePagination('staffInventoryTable');
+}
+
+function loadInventory() {
+    return Promise.all([
+        fetch('/api/books/').then(function (r) { return r.json(); }),
+        fetch('/api/authors/').then(function (r) { return r.json(); }).catch(function () { return []; }),
+        fetch('/api/categories/').then(function (r) { return r.json(); }).catch(function () { return []; })
+    ]).then(function (results) {
+        _allBooks = Array.isArray(results[0]) ? results[0] : [];
+        _authors = Array.isArray(results[1]) ? results[1] : [];
+        _categories = Array.isArray(results[2]) ? results[2] : [];
+        populateSelects();
+        renderRows(_allBooks);
+        staggerReveal('.reveal', 90);
+    }).catch(function () {
+        document.getElementById('inventoryRows').innerHTML = '<tr><td colspan="6" style="color:#b42318;">Không tải được dữ liệu</td></tr>';
+    });
+}
+
+function populateSelects() {
+    var aOpts = '<option value="">-- Chọn tác giả --</option>' + _authors.map(function (a) {
+        return '<option value="' + (a.author_id || a.id || '') + '">' + (a.name || a.author_name || '') + '</option>';
+    }).join('');
+    var cOpts = '<option value="">-- Chọn danh mục --</option>' + _categories.map(function (c) {
+        return '<option value="' + (c.category_id || c.id || '') + '">' + (c.name || c.category_name || '') + '</option>';
+    }).join('');
+    document.getElementById('fAuthor').innerHTML = aOpts;
+    document.getElementById('fCategory').innerHTML = cOpts;
+}
+
+function openAddModal() {
+    _editBookId = null;
+    document.getElementById('modalTitle').textContent = 'Thêm sách mới';
+    document.getElementById('fTitle').value = '';
+    document.getElementById('fIsbn').value = '';
+    document.getElementById('fPrice').value = '';
+    document.getElementById('fStock').value = '0';
+    document.getElementById('fStatus').value = 'available';
+    document.getElementById('fAuthor').value = '';
+    document.getElementById('fCategory').value = '';
+    document.getElementById('fYear').value = '';
+    document.getElementById('fCover').value = '';
+    document.getElementById('fDesc').value = '';
+    document.getElementById('btnSave').disabled = false;
+    document.getElementById('btnSave').textContent = 'Lưu';
+    document.getElementById('btnDelBook').style.display = 'none';
+    document.getElementById('bookModal').classList.add('open');
+}
+
+function openEditModal(bookId) {
+    var book = _allBooks.find(function (b) { return b.book_id === bookId; });
+    if (!book) return;
+    _editBookId = book.book_id;
+    document.getElementById('modalTitle').textContent = 'Cập nhật sách';
+    document.getElementById('fTitle').value = book.title || '';
+    document.getElementById('fIsbn').value = book.isbn || '';
+    document.getElementById('fPrice').value = book.price || '';
+    document.getElementById('fStock').value = book.stock_quantity != null ? book.stock_quantity : '';
+    document.getElementById('fStatus').value = book.status || 'available';
+    document.getElementById('fAuthor').value = book.author_id || '';
+    document.getElementById('fCategory').value = book.category_id || '';
+    document.getElementById('fYear').value = book.publish_year || '';
+    document.getElementById('fCover').value = book.cover_image_url || '';
+    document.getElementById('fDesc').value = book.description || '';
+    document.getElementById('btnSave').disabled = false;
+    document.getElementById('btnSave').textContent = 'Lưu cập nhật';
+    document.getElementById('btnDelBook').style.display = 'inline-flex';
+    document.getElementById('bookModal').classList.add('open');
+}
+
+function closeBookModal() {
+    document.getElementById('bookModal').classList.remove('open');
+}
+
+function saveBook() {
+    var title = document.getElementById('fTitle').value.trim();
+    var price = document.getElementById('fPrice').value.trim();
+    if (!title) { showToast('Vui lòng nhập tên sách', 'error'); return; }
+    if (!price) { showToast('Vui lòng nhập giá', 'error'); return; }
+    var payload = {
+        title: title,
+        isbn: document.getElementById('fIsbn').value.trim() || null,
+        price: parseFloat(price),
+        stock_quantity: parseInt(document.getElementById('fStock').value || '0', 10),
+        status: document.getElementById('fStatus').value,
+        author_id: document.getElementById('fAuthor').value || null,
+        category_id: document.getElementById('fCategory').value || null,
+        publish_year: parseInt(document.getElementById('fYear').value || '0', 10) || null,
+        cover_image_url: document.getElementById('fCover').value.trim() || null,
+        description: document.getElementById('fDesc').value.trim() || null
+    };
+    var btn = document.getElementById('btnSave');
+    btn.disabled = true;
+    var url = _editBookId ? '/api/books/' + _editBookId + '/' : '/api/books/';
+    var method = _editBookId ? 'PUT' : 'POST';
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify(payload)
+    })
+    .then(function (r) {
+        if (!r.ok) { return r.json().then(function (e) { throw e; }); }
+        return r.json();
+    })
+    .then(function () {
+        showToast(_editBookId ? 'Đã cập nhật sách thành công!' : 'Đã thêm sách thành công!', 'success');
+        closeBookModal();
+        loadInventory();
+    })
+    .catch(function (err) {
+        btn.disabled = false;
+        var msg = typeof err === 'object' ? (JSON.stringify(err).slice(0, 120)) : String(err);
+        showToast('Lỗi: ' + msg, 'error');
+    });
+}
+
+function deleteCurrentBook() {
+    if (!_editBookId) return;
+    var title = document.getElementById('fTitle').value || 'sách này';
+    if (!confirm('Bạn có chắc muốn xóa "' + title + '"? Hành động này không thể hoàn tác.')) return;
+    fetch('/api/books/' + _editBookId + '/', {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(function (r) {
+        if (!r.ok && r.status !== 204) { throw new Error('HTTP ' + r.status); }
+        showToast('Đã xóa sách thành công!', 'success');
+        closeBookModal();
+        loadInventory();
+    })
+    .catch(function (err) {
+        showToast('Xóa thất bại: ' + String(err), 'error');
+    });
+}
+
+function getCookie(name) {
+    var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m[2]) : '';
+}
+
+document.getElementById('bookModal').addEventListener('click', function (e) { if (e.target === this) closeBookModal(); });
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeBookModal(); }
+});
+
+(function () {
+    fetch('/api/auth/staff/session/')
+        .then(function (r) { return r.json(); })
+        .then(function (s) {
+            if (!s || !s.authenticated) { window.location.href = '/staff/login/'; return; }
+            localStorage.setItem('staff_id', s.staff_id || '');
+            localStorage.setItem('staff_name', s.name || 'Staff');
+            localStorage.setItem('staff_role', s.role || 'staff');
+            if (s.role === 'manager' || s.role === 'admin') { window.location.href = '/manager/inventory/'; return; }
+            loadInventory();
+        });
+})();
+</script>
+{% endblock %}

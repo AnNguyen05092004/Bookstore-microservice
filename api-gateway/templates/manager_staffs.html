@@ -1,0 +1,203 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Manager Staffs - BookStore{% endblock %}
+{% block admin_title %}Quản lý Staffs{% endblock %}
+{% block admin_subtitle %}Danh sách nhân sự nội bộ và phân quyền role{% endblock %}
+
+{% block content %}
+<div class="card reveal">
+    <table id="managerStaffsTable">
+        <thead>
+            <tr>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Phòng ban</th>
+                <th>Trạng thái</th>
+                <th data-sort="off">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="staffRows">
+            <tr><td colspan="6" style="color:#6b7280;">Đang tải...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Edit Staff Modal -->
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:32px;min-width:360px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 style="margin:0 0 20px;color:#1e293b;">Chỉnh sửa nhân viên</h3>
+        <p id="editStaffName" style="font-weight:600;color:#2f6f68;margin:0 0 20px;"></p>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Trạng thái</label>
+            <select id="editIsActive" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+                <option value="true">Active (Đang hoạt động)</option>
+                <option value="false">Inactive (Ngừng hoạt động)</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Role</label>
+            <select id="editRole" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
+                <option value="staff">Staff</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+                <option value="warehouse">Warehouse Staff</option>
+                <option value="support">Customer Support</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:24px;">
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Phòng ban</label>
+            <input id="editDepartment" type="text" placeholder="VD: Sales, IT, Operations..."
+                style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+
+        <div id="editError" style="display:none;color:#b42318;font-size:13px;margin-bottom:12px;"></div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <button onclick="closeEditModal()" style="padding:8px 20px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-size:14px;">Huỷ</button>
+            <button onclick="saveEdit()" style="padding:8px 20px;border:none;border-radius:8px;background:#2f6f68;color:#fff;cursor:pointer;font-size:14px;font-weight:600;">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var _currentEditId = null;
+
+function openEditModal(staffId, name, role, department, isActive) {
+    _currentEditId = staffId;
+    document.getElementById('editStaffName').textContent = name;
+    document.getElementById('editIsActive').value = isActive ? 'true' : 'false';
+    document.getElementById('editRole').value = role || 'staff';
+    document.getElementById('editDepartment').value = department || '';
+    document.getElementById('editError').style.display = 'none';
+    var modal = document.getElementById('editModal');
+    modal.style.display = 'flex';
+}
+
+function openEditFromButton(button) {
+    var staffId = decodeURIComponent(button.getAttribute('data-staff-id') || '');
+    var name = decodeURIComponent(button.getAttribute('data-name') || '');
+    var role = decodeURIComponent(button.getAttribute('data-role') || '');
+    var department = decodeURIComponent(button.getAttribute('data-department') || '');
+    var isActive = (button.getAttribute('data-is-active') || 'false') === 'true';
+    openEditModal(staffId, name, role, department, isActive);
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    _currentEditId = null;
+}
+
+document.getElementById('editModal').addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeEditModal();
+    }
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && document.getElementById('editModal').style.display === 'flex') {
+        closeEditModal();
+    }
+});
+
+function saveEdit() {
+    if (!_currentEditId) return;
+    var isActive = document.getElementById('editIsActive').value === 'true';
+    var role = document.getElementById('editRole').value;
+    var department = document.getElementById('editDepartment').value.trim();
+
+    fetch('/api/staffs/' + _currentEditId + '/', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify({ is_active: isActive, role: role, department: department })
+    })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+    .then(function (res) {
+        if (!res.ok) {
+            var errMsg = res.data && res.data.error ? res.data.error : 'Cập nhật thất bại';
+            document.getElementById('editError').textContent = errMsg;
+            document.getElementById('editError').style.display = 'block';
+            return;
+        }
+        closeEditModal();
+        loadStaffs();
+    })
+    .catch(function () {
+        document.getElementById('editError').textContent = 'Lỗi kết nối, thử lại sau.';
+        document.getElementById('editError').style.display = 'block';
+    });
+}
+
+function getCsrfToken() {
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
+function loadStaffs() {
+    fetch('/api/staffs/')
+        .then(function (r) { return r.json(); })
+        .then(function (rows) {
+            var data = Array.isArray(rows) ? rows : [];
+            var tbody = document.getElementById('staffRows');
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color:#6b7280;">Chưa có nhân sự</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(function (s) {
+                var name = ((s.first_name || '') + ' ' + (s.last_name || '')).trim() || '-';
+                var activeLabel = s.is_active
+                    ? '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">Active</span>'
+                    : '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">Inactive</span>';
+                var editBtn = '<button onclick="openEditFromButton(this)" ' +
+                    'data-staff-id="' + encodeURIComponent(String(s.staff_id || '')) + '" ' +
+                    'data-name="' + encodeURIComponent(String(name)) + '" ' +
+                    'data-role="' + encodeURIComponent(String(s.role || '')) + '" ' +
+                    'data-department="' + encodeURIComponent(String(s.department || '')) + '" ' +
+                    'data-is-active="' + (s.is_active ? 'true' : 'false') + '" ' +
+                    'style="padding:4px 14px;border:1px solid #2f6f68;border-radius:6px;background:#fff;color:#2f6f68;cursor:pointer;font-size:13px;font-weight:600;">Sửa</button>';
+                return '<tr>' +
+                    '<td>' + name + '</td>' +
+                    '<td>' + (s.email || '-') + '</td>' +
+                    '<td>' + (s.role || '-') + '</td>' +
+                    '<td>' + (s.department || '-') + '</td>' +
+                    '<td>' + activeLabel + '</td>' +
+                    '<td>' + editBtn + '</td>' +
+                    '</tr>';
+            }).join('');
+            enableSortableTable('managerStaffsTable');
+            enablePagination('managerStaffsTable');
+        })
+        .catch(function () {
+            document.getElementById('staffRows').innerHTML = '<tr><td colspan="6" style="color:#b42318;">Không tải được danh sách staff</td></tr>';
+        });
+}
+
+(function () {
+    fetch('/api/auth/staff/session/')
+        .then(function (r) { return r.json(); })
+        .then(function (s) {
+            if (!s || !s.authenticated) {
+                window.location.href = '/manager/login/';
+                return;
+            }
+            localStorage.setItem('staff_id', s.staff_id || '');
+            localStorage.setItem('staff_name', s.name || 'Manager');
+            localStorage.setItem('staff_role', s.role || 'manager');
+            if (s.role !== 'manager' && s.role !== 'admin') {
+                window.location.href = '/staff/dashboard/';
+                return;
+            }
+            staggerReveal('.reveal', 90);
+            loadStaffs();
+        })
+        .catch(function () {
+            window.location.href = '/manager/login/';
+        });
+})();
+</script>
+{% endblock %}

@@ -193,12 +193,48 @@ POST /orders/ → order-service
 ### Chạy project:
 ```bash
 docker-compose up --build
+docker compose up -d
+docker-compose restart
 ```
 
 Truy cập: http://localhost:8000
 
 ---
 python3 seed_data.py
+
+### Ngày 17/03/2026
+
+#### ✅ Nâng cấp Staff/Manager Portal (API Gateway)
+- Sửa lỗi đăng nhập Staff/Manager: khi đã có session vẫn thao tác được form login.
+- Thêm trang Staff Settings (`/staff/settings/`) để lưu tuỳ chọn cá nhân.
+- Nâng cấp Staff Dashboard:
+    - Modal xem chi tiết đơn hàng, map tên sách theo `book_id`.
+    - Cập nhật trạng thái đơn trực tiếp trong modal.
+    - Thêm quick filter theo mã đơn/khách và khoảng thời gian.
+- Đồng bộ animation reveal cho các khối KPI/chart/table ở Staff & Manager.
+
+#### ✅ Sort + Pagination cho bảng dữ liệu
+- Áp dụng sortable columns (click tiêu đề cột) cho toàn bộ bảng Staff/Manager.
+- Bổ sung phân trang client-side (10 items/trang), có nút mũi tên và số trang.
+- Tích hợp tương thích giữa filter, sort và pagination.
+
+#### ✅ Staff Inventory CRUD hoàn chỉnh
+- Bổ sung chức năng thêm/sửa/xóa sách tại `/staff/inventory/`.
+- Cột thao tác dùng nút **Cập nhật**; mở modal để:
+    - chỉnh thông tin sách (tên, ISBN, giá, tồn kho, trạng thái, tác giả, danh mục, mô tả...)
+    - xóa sách trực tiếp từ modal
+- Bổ sung tìm kiếm nhanh theo tên sách/ISBN.
+
+#### ✅ Sửa logic cột trạng thái trong kho sách
+- Tách rõ 2 khái niệm:
+    - `status` của sách (`available`, `out_of_stock`, `coming_soon`, `discontinued`)
+    - cảnh báo tồn kho thấp theo `stock_quantity`
+- Cột **Trạng thái** hiện đúng theo `status` từ DB.
+- Cột **Tồn kho** hiển thị cảnh báo đỏ khi số lượng thấp.
+
+#### ✅ Kiểm thử & triển khai
+- Rebuild `api-gateway` bằng Docker Compose sau mỗi đợt chỉnh sửa.
+- Smoke test bằng `curl` cho các route Staff/Manager để xác nhận marker JS/CSS và chức năng hoạt động.
 
 ## 📦 Deliverables (Assignment 05)
 
@@ -209,3 +245,90 @@ python3 seed_data.py
 5. [ ] 8-12 page technical report
 
 ---
+
+
+## Assignment 06 (Production-level Architecture)
+
+### Mục tiêu chính
+Nâng cấp từ Assignment 05 lên kiến trúc production-grade, gồm:
+
+1. JWT Authentication Service
+- Central auth-service
+- Role-based access control
+- Token validation tại API Gateway
+
+2. Saga Pattern for Distributed Transactions
+- Order creation theo orchestration flow:
+    - Create order (Pending)
+    - Reserve payment
+    - Reserve shipping
+    - Confirm order
+    - Compensate khi lỗi
+
+3. Event Bus Integration
+- Thay REST coupling trực tiếp bằng async messaging
+- Gợi ý: RabbitMQ / Kafka
+
+4. API Gateway Responsibilities
+- Routing
+- Authentication validation
+- Logging
+- Rate limiting
+
+5. Observability
+- Centralized logging
+- Health endpoints
+- Metrics endpoint
+
+### Advanced Deliverables
+1. Implement Saga pattern
+2. Integrate message broker
+3. Implement JWT
+4. Provide fault simulation
+5. Provide load testing results
+6. Architecture justification report
+
+### Tiến độ Assignment 06
+
+#### ✅ Task 1 - JWT Authentication Service (Hoàn thành ngày 17/03/2026)
+
+**1) Central auth-service**
+- Tạo service mới: `auth-service` (port `8003`)
+- Endpoint chính:
+    - `POST /auth/customer/login/`
+    - `POST /auth/staff/login/`
+    - `POST /auth/verify/`
+    - `POST /auth/logout/`
+    - `GET /health/`
+- JWT claims chuẩn hóa: `sub`, `user_type`, `role`, `name`, `email`, `iat`, `exp`
+- Config JWT bằng env:
+    - `JWT_SECRET`
+    - `JWT_ALGORITHM` (HS256)
+    - `JWT_EXPIRES_HOURS`
+
+**2) Role-based access control (RBAC)**
+- Role được nhúng trong JWT claim `role`
+- `auth-service` enforce portal login:
+    - Portal staff: chặn manager/admin
+    - Portal manager: chỉ cho manager/admin
+- API Gateway dùng role từ token để kiểm tra quyền manager ở các API admin/staff management
+
+**3) Token validation tại API Gateway**
+- Gateway không trust session đơn thuần nữa, mà verify JWT qua `auth-service`:
+    - helper lấy Bearer token hoặc session token
+    - gọi `POST /auth/verify/` trước khi cho truy cập route cần quyền
+- Login flow gateway đã chuyển sang gọi `auth-service` thay vì login trực tiếp customer/staff-service
+
+**4) Docker & wiring**
+- Cập nhật `docker-compose.yml`:
+    - thêm service `auth-service`
+    - thêm env `AUTH_SERVICE_URL` cho `api-gateway`
+- Cập nhật `api-gateway` settings để đọc `AUTH_SERVICE_URL`
+
+**5) Kiểm thử nhanh (smoke test)**
+- `GET http://localhost:8003/health/` trả `healthy`
+- Login staff qua `auth-service` trả JWT hợp lệ
+- Login staff qua gateway vẫn hoạt động và `api/auth/staff/session/` trả authenticated
+- RBAC gateway đã xác nhận:
+    - không token -> `/api/staffs/` trả `Forbidden`
+    - manager Bearer token -> `/api/staffs/` truy cập thành công

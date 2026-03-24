@@ -14,6 +14,7 @@ from .views import (
 )
 
 urlpatterns = [
+    # Customer CRUD and loyalty operations
     path("customers/", CustomerListCreate.as_view(), name="customer-list-create"),
     path(
         "customers/<uuid:customer_id>/",
@@ -25,7 +26,9 @@ urlpatterns = [
         CustomerLoyalty.as_view(),
         name="customer-loyalty",
     ),
+    # Customer authentication endpoints
     path("login/", CustomerLogin.as_view(), name="customer-login"),
     path("logout/", CustomerLogout.as_view(), name="customer-logout"),
+    # Service health endpoint
     path("health/", HealthCheck.as_view(), name="health-check"),
 ]

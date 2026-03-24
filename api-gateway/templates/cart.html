@@ -4,114 +4,356 @@
 
 {% block content %}
 <style>
-.cart-page { max-width: 900px; margin: 0 auto; }
-.cart-page > h1 {
+.cart-page { max-width: 1080px; margin: 0 auto; }
+
+.cart-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
-    font-size: 1.8rem;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.cart-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+.cart-title-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #C2410C, #EA580C);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 22px rgba(194,65,12,0.33);
+}
+.cart-page h1 { margin: 0; font-size: 1.8rem; }
+.cart-subtitle { color: #9CA3AF; font-size: 0.9rem; margin-top: 0.15rem; }
+
+.cart-summary-inline {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+.cart-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: white;
+    border: 1px solid #F2E8DF;
+    color: #78716C;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    padding: 0.38rem 0.75rem;
+}
+.cart-chip span { color: #C2410C; font-weight: 700; }
+
+.cart-grid {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    gap: 1rem;
+    align-items: start;
 }
 
-.cart-login-required, .cart-empty {
+.cart-login-required, .cart-empty, .cart-loading {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 3.2rem 2rem;
     background: white;
-    border-radius: var(--radius-lg);
+    border-radius: 18px;
     box-shadow: var(--shadow);
+    border: 1px solid #F3EAE0;
 }
-.cart-login-required .icon, .cart-empty .icon { font-size: 4rem; margin-bottom: 1.25rem; }
-.cart-login-required h2, .cart-empty h2 { margin: 0 0 0.5rem; font-size: 1.4rem; }
-.cart-login-required p, .cart-empty p { color: var(--gray); margin-bottom: 1.5rem; }
+
+.state-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 22px;
+    margin: 0 auto 1rem;
+    background: #FEF2E8;
+    color: #C2410C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .cart-items-card {
     background: white;
-    border-radius: var(--radius-lg);
+    border-radius: 18px;
     box-shadow: var(--shadow);
     overflow: hidden;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(0,0,0,0.04);
+    border: 1px solid #F3EAE0;
 }
-.cart-item {
+
+.cart-item-header, .cart-item {
     display: grid;
-    grid-template-columns: 1fr auto auto auto auto;
-    gap: 1.25rem;
+    grid-template-columns: minmax(260px, 1fr) 120px 160px 140px 84px;
+    gap: 0.9rem;
     align-items: center;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--gray-light);
+}
+
+.cart-item-header {
+    background: #FAFAFA;
+    font-weight: 700;
+    font-size: 0.77rem;
+    color: #9CA3AF;
+    padding: 0.82rem 1rem;
+    border-bottom: 1px solid #F3EAE0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.cart-item {
+    padding: 1rem;
+    border-bottom: 1px solid #F3EAE0;
 }
 .cart-item:last-child { border-bottom: none; }
-.cart-item-header {
-    background: var(--gray-lighter);
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--gray);
-    padding: 0.85rem 1.5rem;
+
+.product-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
 }
-.cart-item-title { font-weight: 600; color: var(--dark); }
-.cart-total {
-    background: var(--primary-light);
-    border-top: 2px solid var(--accent);
+
+.book-thumb {
+    width: 44px;
+    height: 58px;
+    border-radius: 9px;
+    background: linear-gradient(140deg, #FED7AA, #FDBA74);
+    color: #9A3412;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.12);
 }
-.btn-remove {
-    background: var(--danger-light);
-    color: var(--danger);
+
+.cart-item-title {
+    font-weight: 700;
+    color: #1C1917;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.95rem;
+}
+.cart-item-sub { color: #9CA3AF; font-size: 0.78rem; margin-top: 0.18rem; }
+
+.price-cell { color: #78716C; font-size: 0.92rem; font-weight: 600; }
+
+.qty-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #E9DDD2;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+.qty-btn {
     border: none;
-    padding: 0.5rem 0.85rem;
-    border-radius: var(--radius);
+    background: #FAFAFA;
+    color: #57534E;
+    width: 34px;
+    height: 34px;
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: var(--transition);
+    font-weight: 700;
+    transition: background 0.2s;
 }
-.btn-remove:hover { background: var(--danger); color: white; }
+.qty-btn:hover { background: #F3E8DF; }
+.qty-value {
+    width: 46px;
+    text-align: center;
+    font-weight: 700;
+    color: #1C1917;
+    font-size: 0.9rem;
+}
+
+.subtotal-cell {
+    color: #C2410C;
+    font-weight: 800;
+    font-size: 0.98rem;
+}
+
+.btn-remove {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid #FECACA;
+    background: #FEF2F2;
+    color: #DC2626;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-remove:hover {
+    background: #DC2626;
+    color: white;
+    border-color: #DC2626;
+}
+
+.cart-side-card {
+    position: sticky;
+    top: 95px;
+    background: white;
+    border: 1px solid #F3EAE0;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 1rem;
+}
+.side-title { font-weight: 800; color: #1C1917; margin-bottom: 0.8rem; }
+.side-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0;
+    color: #78716C;
+    font-size: 0.9rem;
+}
+.side-row.total {
+    border-top: 1px solid #F3EAE0;
+    margin-top: 0.35rem;
+    padding-top: 0.7rem;
+    color: #1C1917;
+    font-weight: 800;
+    font-size: 1rem;
+}
+.side-row.total strong { color: #C2410C; font-size: 1.25rem; }
 
 .cart-actions {
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1rem;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    margin-top: 0.9rem;
 }
-.cart-actions .btn { padding: 0.85rem 1.5rem; }
+.btn-continue,
+.btn-checkout {
+    border-radius: 12px;
+    padding: 0.78rem 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+.btn-continue {
+    border: 1.5px solid #E86A2D;
+    color: #C2410C;
+    background: white;
+}
+.btn-checkout {
+    background: linear-gradient(135deg, #D97706, #EA580C);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.mini-note {
+    margin-top: 0.75rem;
+    font-size: 0.76rem;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
 
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
-.loading-spinner { animation: spin 1s linear infinite; display: inline-block; }
+.loading-spinner { animation: spin 0.9s linear infinite; display: inline-flex; }
 
-@media (max-width: 600px) {
-    .cart-item { grid-template-columns: 1fr; text-align: center; }
+@media (max-width: 980px) {
+    .cart-grid { grid-template-columns: 1fr; }
+    .cart-side-card { position: static; }
+}
+
+@media (max-width: 760px) {
     .cart-item-header { display: none; }
-    .cart-actions { grid-template-columns: 1fr; }
+    .cart-item {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+        padding: 0.9rem;
+    }
+    .price-cell::before,
+    .subtotal-cell::before {
+        color: #9CA3AF;
+        font-size: 0.78rem;
+        margin-right: 0.35rem;
+    }
+    .price-cell::before { content: 'Giá:'; }
+    .subtotal-cell::before { content: 'Tạm tính:'; }
 }
 </style>
 
 <div class="cart-page">
-    <h1>🛒 Giỏ hàng</h1>
+    <div class="cart-header">
+        <div class="cart-title-wrap">
+            <div class="cart-title-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </div>
+            <div>
+                <h1>Giỏ hàng của bạn</h1>
+                <div class="cart-subtitle">Xem chi tiết, cập nhật số lượng và thanh toán nhanh</div>
+            </div>
+        </div>
+        <div id="cartInlineSummary" class="cart-summary-inline" style="display:none;"></div>
+    </div>
 
     <div id="loginRequired" style="display: none;" class="cart-login-required">
-        <div class="icon">🔒</div>
+        <div class="state-icon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
         <h2>Vui lòng đăng nhập</h2>
         <p>Bạn cần đăng nhập để xem giỏ hàng.</p>
         <a href="/login/" class="btn">Đăng nhập</a>
     </div>
 
-    <div id="loadingState" style="display: none;" class="cart-login-required">
-        <div class="icon loading-spinner">⏳</div>
+    <div id="loadingState" style="display: none;" class="cart-loading">
+        <div class="state-icon loading-spinner">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10"/></svg>
+        </div>
         <p>Đang tải giỏ hàng...</p>
     </div>
 
     <div id="cartContent" style="display: none;">
-        <div id="cartItems" class="cart-items-card"></div>
-        
-        <div id="cartSummary" style="display: none;" class="cart-actions">
-            <a href="/books/" class="btn btn-outline">← Tiếp tục mua sắm</a>
-            <button class="btn" onclick="checkout()">Thanh toán →</button>
+        <div class="cart-grid">
+            <div id="cartItems" class="cart-items-card"></div>
+
+            <aside id="cartSummary" style="display: none;" class="cart-side-card">
+                <div class="side-title">Tóm tắt đơn hàng</div>
+                <div class="side-row"><span>Số sản phẩm</span><strong id="sumProducts">0</strong></div>
+                <div class="side-row"><span>Tạm tính</span><strong id="sumSubtotal">0đ</strong></div>
+                <div class="side-row"><span>Phí vận chuyển</span><strong id="sumShipping">Miễn phí</strong></div>
+                <div class="side-row total"><span>Tổng cộng</span><strong id="sumTotal">0đ</strong></div>
+
+                <div class="cart-actions">
+                    <a href="/books/" class="btn-continue">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Tiếp tục mua sắm
+                    </a>
+                    <button class="btn-checkout" onclick="checkout()">
+                        Thanh toán ngay
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </div>
+
+                <div class="mini-note">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Dữ liệu giỏ hàng đồng bộ theo tài khoản của bạn
+                </div>
+            </aside>
         </div>
     </div>
 
     <div id="emptyCart" style="display: none;" class="cart-empty">
-        <div class="icon">🛒</div>
+        <div class="state-icon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
         <h2>Giỏ hàng trống</h2>
         <p>Thêm sách vào giỏ hàng để bắt đầu!</p>
         <a href="/books/" class="btn">Khám phá sách</a>
@@ -122,6 +364,14 @@
 {% block scripts %}
 <script>
 const customerId = localStorage.getItem('customer_id');
+
+const CART_ICONS = {
+    book: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+    trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+};
+
+let cartData = null;
+let isUpdatingQty = false;
 
 if (!customerId) {
     document.getElementById('loginRequired').style.display = 'block';
@@ -134,51 +384,104 @@ function loadCart() {
     fetch('/api/cart/' + customerId + '/')
         .then(r => r.json())
         .then(cart => {
+            cartData = cart;
             document.getElementById('loadingState').style.display = 'none';
             
             if (cart.items && cart.items.length > 0) {
                 document.getElementById('cartContent').style.display = 'block';
-                document.getElementById('cartSummary').style.display = 'grid';
+                document.getElementById('cartSummary').style.display = 'block';
                 
                 let total = 0;
+                let totalQty = 0;
                 const itemsHtml = cart.items.map(item => {
-                    const subtotal = item.quantity * parseFloat(item.unit_price);
+                    const unit = parseFloat(item.unit_price) || 0;
+                    const subtotal = item.quantity * unit;
                     total += subtotal;
+                    totalQty += item.quantity;
+                    const title = item.book_title || ('Sách #' + item.book_id);
+                    const safeTitle = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     return '<div class="cart-item">' +
-                        '<div class="cart-item-title">📖 ' + (item.book_title || 'Sách #' + item.book_id) + '</div>' +
-                        '<div style="color: var(--gray);">' + Math.round(item.unit_price).toLocaleString() + 'đ</div>' +
-                        '<div style="background: var(--gray-lighter); padding: 0.3rem 0.8rem; border-radius: var(--radius);">× ' + item.quantity + '</div>' +
-                        '<div style="font-weight: 600; color: var(--primary);">' + Math.round(subtotal).toLocaleString() + 'đ</div>' +
-                        '<button class="btn-remove" onclick="removeItem(\'' + item.book_id + '\')">✕ Xóa</button>' +
-                        '</div>';
+                        '<div class="product-cell">' +
+                            '<div class="book-thumb">' + CART_ICONS.book + '</div>' +
+                            '<div>' +
+                                '<div class="cart-item-title">' + safeTitle + '</div>' +
+                                '<div class="cart-item-sub">Mã sách: ' + item.book_id + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="price-cell">' + formatPrice(unit) + '</div>' +
+                        '<div>' +
+                            '<div class="qty-control">' +
+                                '<button class="qty-btn" onclick="changeQuantity(\'' + item.book_id + '\', ' + (item.quantity - 1) + ')" aria-label="Giảm số lượng">−</button>' +
+                                '<span class="qty-value">' + item.quantity + '</span>' +
+                                '<button class="qty-btn" onclick="changeQuantity(\'' + item.book_id + '\', ' + (item.quantity + 1) + ')" aria-label="Tăng số lượng">+</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="subtotal-cell">' + formatPrice(subtotal) + '</div>' +
+                        '<div>' +
+                            '<button class="btn-remove" onclick="removeItem(\'' + item.book_id + '\')" title="Xóa sản phẩm">' + CART_ICONS.trash + '</button>' +
+                        '</div>' +
+                    '</div>';
                 }).join('');
                 
                 document.getElementById('cartItems').innerHTML = 
                     '<div class="cart-item cart-item-header">' +
                         '<div>Sản phẩm</div>' +
                         '<div>Giá</div>' +
-                        '<div>SL</div>' +
+                        '<div>Số lượng</div>' +
                         '<div>Tạm tính</div>' +
-                        '<div></div>' +
+                        '<div>Xóa</div>' +
                     '</div>' +
-                    itemsHtml +
-                    '<div class="cart-item cart-total">' +
-                        '<div style="font-weight: 600;">Tổng cộng (' + cart.items.length + ' sản phẩm)</div>' +
-                        '<div></div>' +
-                        '<div></div>' +
-                        '<div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">' +
-                            Math.round(cart.total_amount || total).toLocaleString() + 'đ' +
-                        '</div>' +
-                        '<div></div>' +
-                    '</div>';
+                    itemsHtml;
+
+                const totalAmount = cart.total || total;
+                document.getElementById('sumProducts').innerText = totalQty;
+                document.getElementById('sumSubtotal').innerText = formatPrice(totalAmount);
+                document.getElementById('sumTotal').innerText = formatPrice(totalAmount);
+
+                document.getElementById('cartInlineSummary').style.display = 'flex';
+                document.getElementById('cartInlineSummary').innerHTML =
+                    '<div class="cart-chip">Sản phẩm: <span>' + totalQty + '</span></div>' +
+                    '<div class="cart-chip">Tổng tiền: <span>' + formatPrice(totalAmount) + '</span></div>';
             } else {
+                document.getElementById('cartInlineSummary').style.display = 'none';
                 document.getElementById('emptyCart').style.display = 'block';
             }
         })
         .catch(err => {
             console.error(err);
             document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('cartInlineSummary').style.display = 'none';
             document.getElementById('emptyCart').style.display = 'block';
+        });
+}
+
+function changeQuantity(bookId, newQuantity) {
+    if (!customerId || isUpdatingQty) return;
+    if (newQuantity < 0) return;
+
+    isUpdatingQty = true;
+
+    fetch('/api/cart/' + customerId + '/items/' + bookId + '/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: newQuantity })
+    })
+        .then(r => {
+            if (!r.ok && r.status !== 204) throw new Error('Cannot update cart item');
+            return r.status === 204 ? null : r.json();
+        })
+        .then(() => {
+            document.getElementById('cartContent').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            loadCart();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+        })
+        .catch(() => {
+            if (typeof showToast === 'function') showToast('Không thể cập nhật số lượng');
+            else alert('Không thể cập nhật số lượng');
+        })
+        .finally(() => {
+            isUpdatingQty = false;
         });
 }
 
@@ -191,8 +494,16 @@ function removeItem(bookId) {
                 loadCart();
                 if (typeof updateCartBadge === 'function') updateCartBadge();
             })
-            .catch(err => alert('Lỗi xóa sản phẩm'));
+            .catch(() => {
+                if (typeof showToast === 'function') showToast('Lỗi xóa sản phẩm');
+                else alert('Lỗi xóa sản phẩm');
+            });
     }
+}
+
+function formatPrice(val) {
+    const n = Math.round(parseFloat(val) || 0);
+    return n.toLocaleString('vi-VN') + 'đ';
 }
 
 function checkout() {

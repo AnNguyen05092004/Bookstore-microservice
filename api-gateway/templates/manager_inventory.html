@@ -1,0 +1,77 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Manager Inventory - BookStore{% endblock %}
+{% block admin_title %}Manager Inventory{% endblock %}
+{% block admin_subtitle %}Giám sát tồn kho toàn hệ thống{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:1rem;">
+    <strong>KPI nhanh:</strong>
+    <span id="inventoryKpi" style="margin-left:0.4rem;color:#14523e;">Đang tải...</span>
+</div>
+<div class="card">
+    <table id="managerInventoryTable">
+        <thead>
+            <tr>
+                <th>Tên sách</th>
+                <th>Category ID</th>
+                <th>Tồn kho</th>
+                <th>Giá</th>
+            </tr>
+        </thead>
+        <tbody id="inventoryRows">
+            <tr><td colspan="4" style="color:#6b7280;">Đang tải...</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    fetch('/api/auth/staff/session/')
+        .then(function (r) { return r.json(); })
+        .then(function (s) {
+            if (!s || !s.authenticated) {
+                window.location.href = '/manager/login/';
+                return null;
+            }
+            localStorage.setItem('staff_id', s.staff_id || '');
+            localStorage.setItem('staff_name', s.name || 'Manager');
+            localStorage.setItem('staff_role', s.role || 'manager');
+            if (s.role !== 'manager' && s.role !== 'admin') {
+                window.location.href = '/staff/dashboard/';
+                return null;
+            }
+            return fetch('/api/books/').then(function (r) { return r.json(); });
+        })
+        .then(function (rows) {
+            if (!rows) {
+                return;
+            }
+            var books = Array.isArray(rows) ? rows : [];
+            var totalUnits = books.reduce(function (s, b) { return s + Number(b.stock_quantity || 0); }, 0);
+            var low = books.filter(function (b) { return Number(b.stock_quantity || 0) <= 10; }).length;
+            document.getElementById('inventoryKpi').textContent = 'Tổng tồn: ' + totalUnits.toLocaleString('vi-VN') + ' | Sắp hết: ' + low;
+            var tbody = document.getElementById('inventoryRows');
+            if (!books.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="color:#6b7280;">Chưa có dữ liệu kho</td></tr>';
+                return;
+            }
+            tbody.innerHTML = books.map(function (b) {
+                return '<tr>' +
+                    '<td>' + (b.title || '-') + '</td>' +
+                    '<td>' + (b.category_id || '-') + '</td>' +
+                    '<td>' + Number(b.stock_quantity || 0) + '</td>' +
+                    '<td>' + Math.round(Number(b.price || 0)).toLocaleString('vi-VN') + 'đ</td>' +
+                '</tr>';
+            }).join('');
+            enableSortableTable('managerInventoryTable');
+            enablePagination('managerInventoryTable');
+        })
+        .catch(function () {
+            document.getElementById('inventoryRows').innerHTML = '<tr><td colspan="4" style="color:#b42318;">Không tải được dữ liệu inventory</td></tr>';
+        });
+})();
+</script>
+{% endblock %}

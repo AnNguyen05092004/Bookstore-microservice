@@ -163,6 +163,49 @@ class BookRating(APIView):
         )
 
 
+class BookSales(APIView):
+    """
+    POST: Cập nhật total_sold
+      - mode=increment (default): tăng total_sold theo quantity
+      - mode=set: gán total_sold = quantity
+    """
+
+    def post(self, request, book_id):
+        book = get_object_or_404(Book, book_id=book_id)
+
+        raw_qty = request.data.get("quantity", 1)
+        mode = str(request.data.get("mode", "increment")).lower().strip()
+
+        try:
+            quantity = int(raw_qty)
+        except (TypeError, ValueError):
+            return Response(
+                {"error": "quantity must be an integer"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if mode == "set":
+            if quantity < 0:
+                return Response(
+                    {"error": "quantity must be >= 0 when mode=set"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            book.total_sold = quantity
+            book.save(update_fields=["total_sold", "updated_at"])
+        else:
+            # increment mode supports +/- quantity for status transitions
+            next_total = int(book.total_sold or 0) + quantity
+            book.total_sold = max(0, next_total)
+            book.save(update_fields=["total_sold", "updated_at"])
+
+        return Response(
+            {
+                "book_id": str(book.book_id),
+                "total_sold": int(book.total_sold),
+            }
+        )
+
+
 class HealthCheck(APIView):
     """Health check endpoint"""
 

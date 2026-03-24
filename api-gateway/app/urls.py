@@ -10,11 +10,18 @@ from .views import (
     login_page,
     register_page,
     staff_login_page,
+    manager_login_page,
     staff_dashboard_page,
+    manager_dashboard_page,
     staff_books_page,
+    staff_inventory_page,
     staff_customers_page,
     staff_orders_page,
     staff_catalog_page,
+    staff_settings_page,
+    manager_staffs_page,
+    manager_inventory_page,
+    manager_store_page,
     BooksAPI,
     BookDetailAPI,
     CartAPI,
@@ -24,8 +31,16 @@ from .views import (
     CancelOrderAPI,
     CustomerLoginAPI,
     StaffLoginAPI,
+    ManagerLoginAPI,
+    StaffSessionAPI,
+    StaffLogoutAPI,
     CustomerRegisterAPI,
     RecommendationsAPI,
+    RecommenderBehaviourAPI,
+    StaffMembersAPI,
+    StaffUpdateAPI,
+    StaffDashboardAggregateAPI,
+    ManagerDashboardAggregateAPI,
     CustomersAPI,
     CategoriesAPI,
     AuthorsAPI,
@@ -37,7 +52,7 @@ from .views import (
 )
 
 urlpatterns = [
-    # Web UI
+    # Customer-facing web pages
     path("", home, name="home"),
     path("books/", books_page, name="books"),
     path("books/<uuid:book_id>/", book_detail_page, name="book-detail"),
@@ -47,14 +62,23 @@ urlpatterns = [
     path("orders/", orders_page, name="orders"),
     path("login/", login_page, name="login"),
     path("register/", register_page, name="register"),
-    # Staff Web UI
+    # Internal staff/manager web pages
     path("staff/login/", staff_login_page, name="staff-login"),
+    path("manager/login/", manager_login_page, name="manager-login"),
+    path("staff/", staff_dashboard_page, name="staff-home"),
     path("staff/dashboard/", staff_dashboard_page, name="staff-dashboard"),
+    path("manager/", manager_dashboard_page, name="manager-home"),
+    path("manager/dashboard/", manager_dashboard_page, name="manager-dashboard"),
     path("staff/books/", staff_books_page, name="staff-books"),
+    path("staff/inventory/", staff_inventory_page, name="staff-inventory"),
     path("staff/customers/", staff_customers_page, name="staff-customers"),
     path("staff/orders/", staff_orders_page, name="staff-orders"),
     path("staff/catalog/", staff_catalog_page, name="staff-catalog"),
-    # API Proxy
+    path("staff/settings/", staff_settings_page, name="staff-settings"),
+    path("manager/staffs/", manager_staffs_page, name="manager-staffs"),
+    path("manager/inventory/", manager_inventory_page, name="manager-inventory"),
+    path("manager/store/", manager_store_page, name="manager-store"),
+    # Core proxy APIs (books/cart/orders)
     path("api/books/", BooksAPI.as_view(), name="api-books"),
     path("api/books/<uuid:book_id>/", BookDetailAPI.as_view(), name="api-book-detail"),
     path("api/cart/<uuid:customer_id>/", CartAPI.as_view(), name="api-cart"),
@@ -77,23 +101,51 @@ urlpatterns = [
         CancelOrderAPI.as_view(),
         name="api-order-cancel",
     ),
+    # Auth and session proxy APIs
     path("api/auth/login/", CustomerLoginAPI.as_view(), name="api-login"),
     path("api/auth/staff/login/", StaffLoginAPI.as_view(), name="api-staff-login"),
+    path(
+        "api/auth/manager/login/", ManagerLoginAPI.as_view(), name="api-manager-login"
+    ),
+    path(
+        "api/auth/staff/session/", StaffSessionAPI.as_view(), name="api-staff-session"
+    ),
+    path("api/auth/staff/logout/", StaffLogoutAPI.as_view(), name="api-staff-logout"),
     path("api/auth/register/", CustomerRegisterAPI.as_view(), name="api-register"),
     path(
         "api/recommendations/<uuid:customer_id>/",
         RecommendationsAPI.as_view(),
         name="api-recommendations",
     ),
-    # Catalog & Admin APIs
+    path(
+        "api/recommender/behaviours/",
+        RecommenderBehaviourAPI.as_view(),
+        name="api-recommender-behaviours",
+    ),
+    # Catalog and internal admin proxy APIs
     path("api/customers/", CustomersAPI.as_view(), name="api-customers"),
+    path("api/staffs/", StaffMembersAPI.as_view(), name="api-staffs"),
+    path(
+        "api/staffs/<uuid:staff_id>/", StaffUpdateAPI.as_view(), name="api-staff-update"
+    ),
     path("api/categories/", CategoriesAPI.as_view(), name="api-categories"),
     path("api/authors/", AuthorsAPI.as_view(), name="api-authors"),
     path("api/publishers/", PublishersAPI.as_view(), name="api-publishers"),
     path("api/tags/", TagsAPI.as_view(), name="api-tags"),
-    # Reviews & Ratings
+    # Review and rating APIs
     path("api/reviews/", ReviewsAPI.as_view(), name="api-reviews"),
     path("api/ratings/", RatingsAPI.as_view(), name="api-ratings"),
-    # Health
+    # Aggregated dashboard APIs for internal portals
+    path(
+        "api/dashboard/staff/",
+        StaffDashboardAggregateAPI.as_view(),
+        name="api-dashboard-staff",
+    ),
+    path(
+        "api/dashboard/manager/",
+        ManagerDashboardAggregateAPI.as_view(),
+        name="api-dashboard-manager",
+    ),
+    # Gateway health endpoint
     path("health/", HealthCheck.as_view(), name="health"),
 ]

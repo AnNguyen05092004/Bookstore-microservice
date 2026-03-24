@@ -1,19 +1,37 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
 
 {% block title %}Manage Orders - Staff{% endblock %}
 
+{% block admin_title %}Quản lý Đơn hàng{% endblock %}
+{% block admin_subtitle %}Theo dõi trạng thái đơn và xử lý nghiệp vụ giao hàng{% endblock %}
+
 {% block content %}
+<style>
+.page-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+.page-title { margin:0; color:#8b2f0f; font-size:1.6rem; }
+.chip { color:#61708b; font-weight:600; }
+.filters { display:flex; gap:0.8rem; align-items:center; flex-wrap:wrap; }
+.field-select { padding:0.55rem 0.65rem; border-radius:8px; border:1px solid #f0d5c0; color:#8b2f0f; font-weight:600; }
+.action-btn { border:none; border-radius:8px; padding:5px 10px; cursor:pointer; color:#fff; font-weight:700; font-size:12px; }
+.action-view { background:#ff7a33; }
+.action-cancel { background:#de254e; }
+.money { text-align:right; font-weight:700; color:#8b2f0f; }
+.status-chip { display:inline-flex; align-items:center; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; }
+.status-chip.pending, .status-chip.processing, .status-chip.confirmed, .status-chip.shipped { background:#ffe7d6; color:#b94a13; }
+.status-chip.delivered { background:#def7e8; color:#0f8d45; }
+.status-chip.cancelled, .status-chip.refunded { background:#ffe2ea; color:#bf1b3d; }
+</style>
 <div id="content" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h1>🛒 Manage Orders</h1>
+    <div class="page-head reveal">
+        <h1 class="page-title">Quản lý đơn hàng</h1>
         <a href="/staff/dashboard/" class="btn">← Back to Dashboard</a>
     </div>
     
     <!-- Filters -->
-    <div class="card" style="margin-bottom: 1rem;">
-        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-            <label>Filter by Status:</label>
-            <select id="statusFilter" onchange="filterOrders()" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd;">
+    <div class="card reveal" style="margin-bottom: 1rem;">
+        <div class="filters">
+            <label class="chip">Filter by Status:</label>
+            <select id="statusFilter" onchange="filterOrders()" class="field-select">
                 <option value="">All</option>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
@@ -23,12 +41,12 @@
                 <option value="cancelled">Cancelled</option>
                 <option value="refunded">Refunded</option>
             </select>
-            <span id="orderCount" style="margin-left: auto; color: #666;"></span>
+            <span id="orderCount" style="margin-left: auto;" class="chip"></span>
         </div>
     </div>
     
-    <div class="card">
-        <table style="width: 100%; border-collapse: collapse;">
+    <div class="card reveal">
+        <table id="staffOrdersTable" style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 2px solid #ddd;">
                     <th style="text-align: left; padding: 0.5rem;">Order #</th>
@@ -37,7 +55,7 @@
                     <th style="text-align: center;">Status</th>
                     <th style="text-align: right;">Subtotal</th>
                     <th style="text-align: right;">Total</th>
-                    <th style="text-align: center;">Actions</th>
+                    <th style="text-align: center;" data-sort="off">Actions</th>
                 </tr>
             </thead>
             <tbody id="ordersTable">
@@ -48,16 +66,16 @@
 </div>
 
 <!-- Order Detail Modal -->
-<div id="orderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-    <div style="background: white; max-width: 600px; margin: 50px auto; padding: 2rem; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+<div id="orderModal" style="display: none; position: fixed; inset:0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1200; align-items:center; justify-content:center;">
+    <div class="card" style="background: white; max-width: 680px; width:92vw; padding: 1.2rem; border-radius: 12px; max-height: 84vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>Order Details</h2>
+            <h2 style="margin:0;color:#8b2f0f;">Order Details</h2>
             <button onclick="closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
         </div>
         <div id="orderDetails"></div>
         <div style="margin-top: 1rem;">
-            <label>Update Status:</label>
-            <select id="newStatus" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd; margin-right: 0.5rem;">
+            <label class="chip">Update Status:</label>
+            <select id="newStatus" class="field-select" style="margin-right: 0.5rem;">
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="processing">Processing</option>
@@ -66,7 +84,7 @@
                 <option value="cancelled">Cancelled</option>
                 <option value="refunded">Refunded</option>
             </select>
-            <button class="btn" onclick="updateOrderStatus()">Update</button>
+            <button class="btn-link" onclick="updateOrderStatus()">Update</button>
         </div>
     </div>
 </div>
@@ -79,16 +97,30 @@
 
 {% block scripts %}
 <script>
-const staffToken = localStorage.getItem('staff_token');
 let allOrders = [];
 let currentOrderId = null;
 
-if (!staffToken) {
-    document.getElementById('loginRequired').style.display = 'block';
-} else {
-    document.getElementById('content').style.display = 'block';
-    loadOrders();
-}
+fetch('/api/auth/staff/session/')
+    .then(r => r.json())
+    .then(s => {
+        if (!s || !s.authenticated) {
+            document.getElementById('loginRequired').style.display = 'block';
+            return;
+        }
+        localStorage.setItem('staff_id', s.staff_id || '');
+        localStorage.setItem('staff_name', s.name || 'Staff');
+        localStorage.setItem('staff_role', s.role || 'staff');
+        if (s.role === 'manager' || s.role === 'admin') {
+            window.location.href = '/manager/dashboard/';
+            return;
+        }
+        document.getElementById('content').style.display = 'block';
+        staggerReveal('#content .reveal', 90);
+        loadOrders();
+    })
+    .catch(() => {
+        document.getElementById('loginRequired').style.display = 'block';
+    });
 
 function loadOrders() {
     fetch('/api/orders/')
@@ -123,28 +155,21 @@ function renderOrders(orders) {
             <td style="font-size: 0.85rem; color: #666;">${o.customer_id ? o.customer_id.slice(0,8) + '...' : '-'}</td>
             <td>${formatDate(o.order_date)}</td>
             <td style="text-align: center;">${getStatusBadge(o.status)}</td>
-            <td style="text-align: right;">$${parseFloat(o.subtotal || 0).toFixed(2)}</td>
-            <td style="text-align: right; font-weight: 500;">$${parseFloat(o.total_amount || 0).toFixed(2)}</td>
+            <td class="money">$${parseFloat(o.subtotal || 0).toFixed(2)}</td>
+            <td class="money">$${parseFloat(o.total_amount || 0).toFixed(2)}</td>
             <td style="text-align: center;">
-                <button onclick="viewOrder('${o.order_id}')" style="background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-right: 4px;">View</button>
-                ${o.status === 'pending' ? `<button onclick="cancelOrder('${o.order_id}')" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Cancel</button>` : ''}
+                <button onclick="viewOrder('${o.order_id}')" class="action-btn action-view">View</button>
+                ${o.status === 'pending' ? `<button onclick="cancelOrder('${o.order_id}')" class="action-btn action-cancel" style="margin-left:4px;">Cancel</button>` : ''}
             </td>
         </tr>
     `).join('');
+    enableSortableTable('staffOrdersTable');
+    enablePagination('staffOrdersTable');
 }
 
 function getStatusBadge(status) {
-    const colors = {
-        'pending': '#ffc107',
-        'confirmed': '#17a2b8',
-        'processing': '#007bff',
-        'shipped': '#6f42c1',
-        'delivered': '#28a745',
-        'cancelled': '#dc3545',
-        'refunded': '#6c757d'
-    };
-    const color = colors[status] || '#6c757d';
-    return `<span style="background:${color};color:white;padding:2px 8px;border-radius:4px;font-size:0.8rem;">${status}</span>`;
+    const key = String(status || '').toLowerCase();
+    return `<span class="status-chip ${key}">${key || '-'}</span>`;
 }
 
 function formatDate(dateStr) {
@@ -199,7 +224,7 @@ function viewOrder(orderId) {
         ${itemsHtml}
     `;
     
-    document.getElementById('orderModal').style.display = 'block';
+    document.getElementById('orderModal').style.display = 'flex';
 }
 
 function closeModal() {

@@ -18,6 +18,7 @@ Tài liệu này mô tả API của hệ thống BookStore Microservices theo co
 | API Gateway | 8000 | `http://localhost:8000` |
 | customer-service | 8001 | `http://localhost:8001` |
 | staff-service | 8002 | `http://localhost:8002` |
+| auth-service | 8003 | `http://localhost:8003` |
 | catalog-service | 8004 | `http://localhost:8004` |
 | book-service | 8005 | `http://localhost:8005` |
 | cart-service | 8006 | `http://localhost:8006` |
@@ -64,6 +65,9 @@ Accept: application/json
 |---|---|---|
 | POST | `/api/auth/login/` | Đăng nhập customer |
 | POST | `/api/auth/staff/login/` | Đăng nhập staff |
+| POST | `/api/auth/manager/login/` | Đăng nhập manager |
+| GET | `/api/auth/staff/session/` | Kiểm tra session staff/manager |
+| POST | `/api/auth/staff/logout/` | Đăng xuất staff/manager |
 | POST | `/api/auth/register/` | Đăng ký customer |
 
 ### 4.2 Books
@@ -100,10 +104,14 @@ Accept: application/json
 | Method | Endpoint | Mô tả |
 |---|---|---|
 | GET | `/api/customers/` | Danh sách khách hàng |
+| GET | `/api/staffs/` | Danh sách staff |
+| PATCH | `/api/staffs/{staff_id}/` | Cập nhật staff (role/is_active/department) |
 | GET | `/api/categories/` | Danh sách category |
 | GET | `/api/authors/` | Danh sách author |
 | GET | `/api/publishers/` | Danh sách publisher |
 | GET | `/api/tags/` | Danh sách tag |
+| GET | `/api/dashboard/staff/` | Aggregate dashboard cho staff portal |
+| GET | `/api/dashboard/manager/` | Aggregate KPI/charts cho manager portal |
 | GET | `/api/reviews/` | Danh sách review |
 | POST | `/api/reviews/` | Tạo review |
 | POST | `/api/ratings/` | Tạo/cập nhật rating |
@@ -187,7 +195,31 @@ Accept: application/json
 
 ---
 
-## 7) catalog-service (Port 8004)
+## 7) auth-service (Port 8003)
+
+### Endpoints
+
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| POST | `/auth/customer/login/` | Đăng nhập customer, trả JWT |
+| POST | `/auth/staff/login/` | Đăng nhập staff/manager, trả JWT |
+| POST | `/auth/verify/` | Verify JWT, hỗ trợ kiểm tra role |
+| POST | `/auth/logout/` | Stateless logout |
+| GET | `/health/` | Health check |
+
+### JWT claims chính
+
+- `sub`
+- `user_type`
+- `role`
+- `name`
+- `email`
+- `iat`
+- `exp`
+
+---
+
+## 8) catalog-service (Port 8004)
 
 ### Endpoints chính
 
@@ -207,7 +239,7 @@ Accept: application/json
 
 ---
 
-## 8) book-service (Port 8005)
+## 9) book-service (Port 8005)
 
 ### Endpoints
 
@@ -222,6 +254,7 @@ Accept: application/json
 | GET | `/books/{book_id}/stock/` | Kiểm tra tồn kho |
 | POST | `/books/{book_id}/stock/` | Cập nhật tồn kho |
 | POST | `/books/{book_id}/rating/` | Đồng bộ rating từ review-service |
+| POST | `/books/{book_id}/sales/` | Đồng bộ total_sold |
 | GET | `/health/` | Health check |
 
 ### Query params `/books/`
@@ -244,7 +277,7 @@ Accept: application/json
 
 ---
 
-## 9) cart-service (Port 8006)
+## 10) cart-service (Port 8006)
 
 ### Endpoints
 
@@ -276,7 +309,7 @@ Accept: application/json
 
 ---
 
-## 10) order-service (Port 8007)
+## 11) order-service (Port 8007)
 
 ### Endpoints
 
@@ -307,13 +340,19 @@ Accept: application/json
 
 1. Gọi cart-service lấy cart items
 2. Tạo order + order items
-3. Gọi pay-service tạo payment
-4. Gọi ship-service tạo shipping
-5. Clear cart
+3. Đồng bộ sales về book-service qua `POST /books/{book_id}/sales/`
+4. Gọi pay-service tạo payment
+5. Gọi ship-service tạo shipping
+6. Clear cart
+
+### Lưu ý trạng thái ảnh hưởng total_sold
+
+- Chuyển sang `cancelled/refunded`: giảm total_sold.
+- Chuyển từ `cancelled/refunded` về trạng thái active: cộng lại total_sold.
 
 ---
 
-## 11) pay-service (Port 8008)
+## 12) pay-service (Port 8008)
 
 ### Endpoints
 
@@ -349,7 +388,7 @@ Accept: application/json
 
 ---
 
-## 12) ship-service (Port 8009)
+## 13) ship-service (Port 8009)
 
 ### Endpoints
 
@@ -383,7 +422,7 @@ Accept: application/json
 
 ---
 
-## 13) comment-rate-service (Port 8010)
+## 14) comment-rate-service (Port 8010)
 
 ### Endpoints
 
@@ -430,7 +469,7 @@ Accept: application/json
 
 ---
 
-## 14) recommender-ai-service (Port 8011)
+## 15) recommender-ai-service (Port 8011)
 
 ### Endpoints
 
@@ -461,27 +500,28 @@ Accept: application/json
 
 ---
 
-## 15) End-to-End API Flows (đưa vào báo cáo)
+## 16) End-to-End API Flows (đưa vào báo cáo)
 
-### 15.1 Đăng ký customer
+### 16.1 Đăng ký customer
 
 1. `POST /customers/` (customer-service)
 2. customer-service gọi `POST /carts/` (cart-service) để auto tạo cart
 
-### 15.2 Thêm sách vào giỏ
+### 16.2 Thêm sách vào giỏ
 
 1. `POST /carts/{customer_id}/items/` (cart-service)
 2. cart-service gọi `GET /books/{book_id}/` (book-service) để validate
 
-### 15.3 Checkout tạo đơn hàng
+### 16.3 Checkout tạo đơn hàng
 
 1. `POST /orders/` (order-service)
 2. order-service gọi cart-service lấy item
-3. gọi pay-service tạo payment
-4. gọi ship-service tạo shipping
-5. clear cart
+3. đồng bộ sales sang book-service
+4. gọi pay-service tạo payment
+5. gọi ship-service tạo shipping
+6. clear cart
 
-### 15.4 Rating đồng bộ về Book
+### 16.4 Rating đồng bộ về Book
 
 1. `POST /ratings/` hoặc `POST /reviews/` (comment-rate-service)
 2. comment-rate-service tính lại average
@@ -489,7 +529,7 @@ Accept: application/json
 
 ---
 
-## 16) cURL mẫu nhanh
+## 17) cURL mẫu nhanh
 
 ### Login customer qua gateway
 
@@ -529,9 +569,9 @@ curl -X POST http://localhost:8007/orders/ \
 
 ---
 
-## 17) Ghi chú triển khai
+## 18) Ghi chú triển khai
 
-- Authentication hiện tại dùng token đơn giản ở login API (chưa phải JWT chuẩn).
+- Authentication đã chuyển sang `auth-service` dùng JWT; Gateway verify token/role cho API quản trị.
 - Một số API có logic soft-delete (`is_active=false`) thay vì hard-delete.
 - Gateway có một số endpoint proxy dành cho UI staff/customer song song với endpoint service trực tiếp.
 - Khi viết báo cáo, nên đặt API Gateway làm điểm truy cập chính cho client, và mô tả inter-service call ở phần sequence diagrams.

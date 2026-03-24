@@ -14,29 +14,29 @@ from .views import (
 )
 
 urlpatterns = [
-    # Publishers
+    # Publisher APIs
     path("publishers/", PublisherList.as_view(), name="publisher-list"),
     path(
         "publishers/<uuid:publisher_id>/",
         PublisherDetail.as_view(),
         name="publisher-detail",
     ),
-    # Authors
+    # Author APIs
     path("authors/", AuthorList.as_view(), name="author-list"),
     path("authors/<uuid:author_id>/", AuthorDetail.as_view(), name="author-detail"),
-    # Categories
+    # Category APIs
     path("categories/", CategoryList.as_view(), name="category-list"),
     path(
         "categories/<uuid:category_id>/",
         CategoryDetail.as_view(),
         name="category-detail",
     ),
-    # Tags
+    # Tag APIs
     path("tags/", TagList.as_view(), name="tag-list"),
     path("tags/<uuid:tag_id>/", TagDetail.as_view(), name="tag-detail"),
-    # Languages & Formats
+    # Metadata lookup APIs
     path("languages/", LanguageList.as_view(), name="language-list"),
     path("formats/", FormatList.as_view(), name="format-list"),
-    # Health
+    # Service health endpoint
     path("health/", HealthCheck.as_view(), name="health-check"),
 ]

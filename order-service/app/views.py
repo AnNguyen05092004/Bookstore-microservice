@@ -23,6 +23,43 @@ PAY_SERVICE_URL = getattr(settings, "PAY_SERVICE_URL", "http://pay-service:8000"
 SHIP_SERVICE_URL = getattr(settings, "SHIP_SERVICE_URL", "http://ship-service:8000")
 
 
+def _sync_book_sales_for_order(order, multiplier=1):
+    """Sync sold counters in book-service based on order items."""
+    for item in order.items.all():
+        try:
+            requests.post(
+                f"{BOOK_SERVICE_URL}/books/{item.book_id}/sales/",
+                json={
+                    "quantity": int(item.quantity or 0) * int(multiplier),
+                    "mode": "increment",
+                },
+                timeout=5,
+            )
+        except requests.exceptions.RequestException as e:
+            logger.warning(
+                "Error syncing sold count for book %s in order %s: %s",
+                item.book_id,
+                order.order_id,
+                e,
+            )
+
+
+def _apply_sales_transition(order, previous_status, new_status):
+    """
+    Sales rule:
+    - Count sales for every non-cancelled/non-refunded order.
+    - Decrement when transitioning into cancelled/refunded.
+    - Re-increment when transitioning out of cancelled/refunded.
+    """
+    old_cancelled = previous_status in {"cancelled", "refunded"}
+    new_cancelled = new_status in {"cancelled", "refunded"}
+
+    if not old_cancelled and new_cancelled:
+        _sync_book_sales_for_order(order, multiplier=-1)
+    elif old_cancelled and not new_cancelled:
+        _sync_book_sales_for_order(order, multiplier=1)
+
+
 class OrderListCreate(APIView):
     """
     GET: Lấy danh sách orders
@@ -88,6 +125,9 @@ class OrderListCreate(APIView):
                 unit_price=cart_item["unit_price"],
             )
 
+        # Count as sold immediately after order creation.
+        _sync_book_sales_for_order(order, multiplier=1)
+
         # 4. Gọi pay-service để tạo payment
         try:
             payment_response = requests.post(
@@ -150,9 +190,14 @@ class OrderDetail(APIView):
 
     def put(self, request, order_id):
         order = get_object_or_404(Order, order_id=order_id)
+        previous_status = str(order.status or "").lower()
         serializer = UpdateOrderStatusSerializer(data=request.data)
         if serializer.is_valid():
-            order.update_status(serializer.validated_data["status"])
+            new_status = str(serializer.validated_data["status"] or "").lower()
+            order.update_status(new_status)
+
+            _apply_sales_transition(order, previous_status, new_status)
+
             return Response(OrderSerializer(order).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,7 +222,9 @@ class CancelOrder(APIView):
                 {"error": "Cannot cancel order in this status"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        previous_status = str(order.status or "").lower()
         order.update_status("cancelled")
+        _apply_sales_transition(order, previous_status, "cancelled")
         return Response(OrderSerializer(order).data)
 
 

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Login - BookStore</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(140deg, #132c47 0%, #1f4b75 45%, #eef5fb 100%); }
+        .wrap { width: min(930px, 92vw); display: grid; grid-template-columns: 1fr 1fr; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 24px 55px rgba(0, 0, 0, 0.2); }
+        .left { background: linear-gradient(180deg, #10283f, #204f7c); color: white; padding: 2rem 1.7rem; }
+        .left h1 { margin: 0; font-size: 2rem; }
+        .left p { margin-top: 0.45rem; color: rgba(255,255,255,0.88); }
+        .left ul { margin: 1.2rem 0 0; padding-left: 1rem; line-height: 1.8; }
+        .right { padding: 2rem 1.5rem; }
+        .card { border: 1px solid #e6ebf1; border-radius: 14px; padding: 1.25rem; }
+        .form-group { margin-bottom: 0.9rem; }
+        label { display: block; margin-bottom: 0.3rem; font-weight: 600; color: #34495a; }
+        input { width: 100%; border: 1px solid #d8e0e9; border-radius: 10px; padding: 0.72rem 0.8rem; }
+        .btn { border: none; border-radius: 10px; cursor: pointer; font-weight: 700; color: #fff; background: linear-gradient(135deg, #1b4c7a, #2b6aa5); width: 100%; padding: 0.9rem; }
+        .btn:hover { filter: brightness(1.05); }
+        .alert { padding: 0.7rem 0.8rem; border-radius: 8px; margin-bottom: 0.8rem; display: none; }
+        .alert-danger { background: #fde8e8; border: 1px solid #f5c7c7; color: #a61c1c; }
+        .links { margin-top: 1rem; font-size: 0.92rem; color: #596674; display: grid; gap: 0.35rem; }
+        .links a { color: #1b4c7a; font-weight: 700; text-decoration: none; }
+        .mini { margin-top: 1rem; font-size: 0.84rem; color: #637386; }
+        .session-note { display:none; margin-bottom:0.8rem; border:1px solid #d6e4f2; background:#eef5fb; color:#1b4c7a; border-radius:8px; padding:0.7rem 0.8rem; }
+        .session-note button { margin-top:0.45rem; border:1px solid #c8dbef; background:#fff; color:#1b4c7a; border-radius:8px; padding:0.35rem 0.6rem; cursor:pointer; font-weight:700; }
+        @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <aside class="left">
+        <h1>Manager Portal</h1>
+        <p>TD Bookstore Analytics</p>
+        <ul>
+            <li>KPI: doanh thu, lợi nhuận, đơn hàng</li>
+            <li>Dashboard chart và bảng giao dịch</li>
+            <li>Chỉ cho role manager/admin</li>
+        </ul>
+    </aside>
+    <main class="right">
+        <div class="card">
+            <h2 style="margin-top:0;">Đăng nhập Manager</h2>
+            <div id="sessionNote" class="session-note"></div>
+            <div id="errorAlert" class="alert alert-danger"></div>
+            <form id="managerLoginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="manager@bookstore.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button id="submitBtn" type="submit" class="btn">Đăng nhập Manager</button>
+            </form>
+            <div class="links">
+                <div>Staff? <a href="/staff/login/">Sang cổng Staff</a></div>
+                <div>Customer? <a href="/login/">Đăng nhập mua sách</a></div>
+            </div>
+            <div class="mini">Test: manager@bookstore.com / manager123</div>
+        </div>
+    </main>
+</div>
+
+<script>
+function clearInternalSession() {
+    return fetch('/api/auth/staff/logout/', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+        .catch(function () {})
+        .finally(function () {
+            localStorage.removeItem('staff_token');
+            localStorage.removeItem('staff_id');
+            localStorage.removeItem('staff_name');
+            localStorage.removeItem('staff_role');
+        });
+}
+
+fetch('/api/auth/staff/session/')
+    .then(function (r) { return r.json(); })
+    .then(function (s) {
+        if (!s || !s.authenticated) {
+            return;
+        }
+        var note = document.getElementById('sessionNote');
+        var role = (s.role || '').toLowerCase();
+        var name = s.name || 'Staff';
+        note.style.display = 'block';
+        note.innerHTML = 'Bạn đang đăng nhập với tài khoản ' + name + ' (' + role + ').<br>Chọn tiếp tục hoặc chuyển tài khoản.<br>' +
+            '<button type="button" id="switchAccountBtn">Đăng nhập tài khoản khác</button>';
+        document.getElementById('switchAccountBtn').addEventListener('click', function () {
+            clearInternalSession();
+            note.style.display = 'none';
+        });
+    })
+    .catch(function () {
+        // Keep login page usable even if session check temporarily fails.
+    });
+
+document.getElementById('managerLoginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    var btn = document.getElementById('submitBtn');
+    var alertEl = document.getElementById('errorAlert');
+    btn.disabled = true;
+    btn.textContent = 'Đang đăng nhập...';
+    alertEl.style.display = 'none';
+
+    fetch('/api/auth/manager/login/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: email, password: password})
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (data.token && data.staff) {
+            localStorage.setItem('staff_token', data.token);
+            localStorage.setItem('staff_id', data.staff.staff_id);
+            localStorage.setItem('staff_name', data.staff.first_name || 'Manager');
+            localStorage.setItem('staff_role', data.staff.role || 'manager');
+            window.location.href = '/manager/dashboard/';
+            return;
+        }
+        alertEl.textContent = data.error || 'Đăng nhập thất bại';
+        alertEl.style.display = 'block';
+    })
+    .catch(function () {
+        alertEl.textContent = 'Lỗi kết nối server';
+        alertEl.style.display = 'block';
+    })
+    .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Đăng nhập Manager';
+    });
+});
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ from .views import (
 )
 
 urlpatterns = [
+    # Shipping CRUD/status APIs
     path("shippings/", ShippingListCreate.as_view(), name="shipping-list-create"),
     path(
         "shippings/<uuid:shipping_id>/",
@@ -19,6 +20,8 @@ urlpatterns = [
         UpdateShippingStatus.as_view(),
         name="update-shipping-status",
     ),
+    # Public tracking API
     path("track/<str:tracking_code>/", TrackShipping.as_view(), name="track-shipping"),
+    # Service health endpoint
     path("health/", HealthCheck.as_view(), name="health-check"),
 ]
